@@ -1,230 +1,692 @@
 <template>
-  <div class="page-container">
-    <div class="page-header">
-      <h2>题目管理</h2>
-      <el-button type="primary" @click="openAddModal">
-        <Plus class="icon" />
-        添加题目
-      </el-button>
+  <div class="question-management animate-fade-in">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9 12h6M9 16h6M9 8h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">1,248</div>
+          <div class="stat-label">题目总数</div>
+        </div>
+        <div class="stat-trend up">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M23 6l-9.5 9.5-5-5L1 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M17 6h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          +12.5%
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon easy">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">456</div>
+          <div class="stat-label">简单题目</div>
+        </div>
+        <div class="stat-percent">36.5%</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon medium">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">623</div>
+          <div class="stat-label">中等题目</div>
+        </div>
+        <div class="stat-percent">49.9%</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon hard">
+          <svg viewBox="0 0 24 24" fill="none">
+            <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">169</div>
+          <div class="stat-label">困难题目</div>
+        </div>
+        <div class="stat-percent">13.6%</div>
+      </div>
     </div>
-    <div class="search-bar">
-      <el-input
-        v-model="searchKeyword"
-        placeholder="搜索题目内容"
-        class="search-input"
-        prefix-icon="Search"
-      />
-      <el-select v-model="filterType" placeholder="题目类型" class="filter-select">
-        <el-option label="全部" value="" />
-        <el-option label="单选题" value="single" />
-        <el-option label="多选题" value="multiple" />
-        <el-option label="判断题" value="judge" />
-        <el-option label="填空题" value="fill" />
-        <el-option label="问答题" value="essay" />
-      </el-select>
-      <el-button type="primary" @click="handleSearch">搜索</el-button>
+
+    <div class="content-card">
+      <div class="card-header">
+        <div class="header-title">
+          <h2>题目列表</h2>
+          <span class="subtitle">管理和维护所有题目</span>
+        </div>
+        <div class="header-actions">
+          <button class="btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            导出
+          </button>
+          <button class="btn-primary">
+            <svg viewBox="0 0 24 24" fill="none">
+              <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            添加题目
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-group">
+          <select class="filter-select">
+            <option>所有难度</option>
+            <option>简单</option>
+            <option>中等</option>
+            <option>困难</option>
+          </select>
+          <select class="filter-select">
+            <option>所有分类</option>
+            <option>言语理解</option>
+            <option>数量关系</option>
+            <option>判断推理</option>
+            <option>资料分析</option>
+            <option>常识判断</option>
+          </select>
+        </div>
+        <div class="search-wrapper">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input type="text" placeholder="搜索题目..." class="filter-search">
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>题目标题</th>
+              <th>难度</th>
+              <th>分类</th>
+              <th>通过率</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in questions" :key="item.id">
+              <td class="id-cell">#{{ item.id }}</td>
+              <td class="title-cell">
+                <div class="title-wrapper">
+                  <span class="title">{{ item.title }}</span>
+                </div>
+              </td>
+              <td>
+                <span :class="['difficulty-badge', item.difficulty]">
+                  {{ item.difficultyText }}
+                </span>
+              </td>
+              <td>{{ item.category }}</td>
+              <td>
+                <div class="pass-rate">
+                  <div class="rate-bar">
+                    <div class="rate-fill" :style="{ width: item.passRate + '%' }"></div>
+                  </div>
+                  <span class="rate-text">{{ item.passRate }}%</span>
+                </div>
+              </td>
+              <td>
+                <span :class="['status-badge', item.status]">
+                  {{ item.statusText }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="action-btn edit">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                  <button class="action-btn delete">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <button class="page-btn" disabled>上一页</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span class="page-dots">...</span>
+        <button class="page-btn">25</button>
+        <button class="page-btn">下一页</button>
+      </div>
     </div>
-    <el-table :data="tableData" border class="data-table">
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="type" label="类型" width="100">
-        <template #default="scope">
-          <el-tag :type="getTagType(scope.row.type)">{{ getTypeName(scope.row.type) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="content" label="题目内容" min-width="300" />
-      <el-table-column prop="difficulty" label="难度" width="100">
-        <template #default="scope">
-          <el-tag :type="getDifficultyType(scope.row.difficulty)">{{ scope.row.difficulty }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="bankName" label="所属题库" width="150" />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column label="操作" width="200">
-        <template #default="scope">
-          <el-button size="small" @click="editQuestion(scope.row)">编辑</el-button>
-          <el-button size="small" type="danger" @click="deleteQuestion(scope.row.id)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination">
-      <el-pagination
-        :total="total"
-        :page-size="pageSize"
-        :current-page="currentPage"
-        @current-change="handlePageChange"
-        layout="total, prev, pager, next, jumper"
-      />
-    </div>
-    <el-dialog title="添加题目" :visible.sync="showAddModal" width="600px">
-      <el-form :model="formData" label-width="100px">
-        <el-form-item label="题目类型">
-          <el-select v-model="formData.type" placeholder="请选择类型">
-            <el-option label="单选题" value="single" />
-            <el-option label="多选题" value="multiple" />
-            <el-option label="判断题" value="judge" />
-            <el-option label="填空题" value="fill" />
-            <el-option label="问答题" value="essay" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="题目内容">
-          <el-textarea v-model="formData.content" rows="4" placeholder="请输入题目内容" />
-        </el-form-item>
-        <el-form-item label="选项">
-          <el-input v-model="formData.options" placeholder="选项用逗号分隔，如：A,B,C,D" />
-        </el-form-item>
-        <el-form-item label="正确答案">
-          <el-input v-model="formData.answer" placeholder="请输入正确答案" />
-        </el-form-item>
-        <el-form-item label="难度">
-          <el-select v-model="formData.difficulty" placeholder="请选择难度">
-            <el-option label="简单" value="简单" />
-            <el-option label="中等" value="中等" />
-            <el-option label="困难" value="困难" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属题库">
-          <el-select v-model="formData.bankId" placeholder="请选择题库">
-            <el-option label="题库一" value="1" />
-            <el-option label="题库二" value="2" />
-            <el-option label="题库三" value="3" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddModal = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">确定</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
+import { ref } from 'vue'
 
-const searchKeyword = ref('')
-const filterType = ref('')
-const showAddModal = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(10)
-const total = ref(50)
-
-const formData = reactive({
-  type: '',
-  content: '',
-  options: '',
-  answer: '',
-  difficulty: '',
-  bankId: ''
-})
-
-const tableData = ref([
-  { id: 1, type: 'single', content: '下列选项中，哪个是Vue3的组合式API？', options: 'A. data() B. setup() C. mounted() D. created()', answer: 'B', difficulty: '简单', bankName: '题库一', createTime: '2024-01-15 10:30:00' },
-  { id: 2, type: 'multiple', content: '以下哪些是JavaScript的基本数据类型？', options: 'A. string B. number C. array D. object', answer: 'AB', difficulty: '中等', bankName: '题库二', createTime: '2024-01-14 14:20:00' },
-  { id: 3, type: 'judge', content: 'Vue3中，ref可以用来创建响应式对象。', answer: '错误', difficulty: '简单', bankName: '题库一', createTime: '2024-01-13 09:15:00' },
-  { id: 4, type: 'fill', content: 'Vue3的核心响应式API是______。', answer: 'reactive', difficulty: '中等', bankName: '题库三', createTime: '2024-01-12 16:45:00' },
-  { id: 5, type: 'essay', content: '请简述Vue3相比于Vue2的主要改进。', answer: '略', difficulty: '困难', bankName: '题库二', createTime: '2024-01-11 11:00:00' }
+const questions = ref([
+  { id: 1, title: '言语理解与表达：主旨概括题', difficulty: 'easy', difficultyText: '简单', category: '言语理解', passRate: 72.5, status: 'active', statusText: '已发布' },
+  { id: 2, title: '数量关系：行程问题', difficulty: 'easy', difficultyText: '简单', category: '数量关系', passRate: 65.3, status: 'active', statusText: '已发布' },
+  { id: 3, title: '判断推理：图形推理题', difficulty: 'medium', difficultyText: '中等', category: '判断推理', passRate: 48.2, status: 'active', statusText: '已发布' },
+  { id: 4, title: '资料分析：增长率计算', difficulty: 'medium', difficultyText: '中等', category: '资料分析', passRate: 52.1, status: 'draft', statusText: '草稿' },
+  { id: 5, title: '常识判断：时事政治题', difficulty: 'medium', difficultyText: '中等', category: '常识判断', passRate: 60.8, status: 'active', statusText: '已发布' },
+  { id: 6, title: '数量关系：排列组合题', difficulty: 'hard', difficultyText: '困难', category: '数量关系', passRate: 32.4, status: 'active', statusText: '已发布' },
+  { id: 7, title: '判断推理：逻辑判断题', difficulty: 'hard', difficultyText: '困难', category: '判断推理', passRate: 28.6, status: 'draft', statusText: '草稿' },
+  { id: 8, title: '资料分析：比重变化题', difficulty: 'hard', difficultyText: '困难', category: '资料分析', passRate: 18.9, status: 'draft', statusText: '草稿' }
 ])
-
-const typeMap: Record<string, string> = {
-  single: '单选题',
-  multiple: '多选题',
-  judge: '判断题',
-  fill: '填空题',
-  essay: '问答题'
-}
-
-const getTypeName = (type: string) => typeMap[type] || type
-
-const getTagType = (type: string) => {
-  const map: Record<string, string> = {
-    single: 'primary',
-    multiple: 'success',
-    judge: 'warning',
-    fill: 'info',
-    essay: 'danger'
-  }
-  return map[type] || 'default'
-}
-
-const getDifficultyType = (difficulty: string) => {
-  const map: Record<string, string> = {
-    '简单': 'success',
-    '中等': 'warning',
-    '困难': 'danger'
-  }
-  return map[difficulty] || 'default'
-}
-
-const openAddModal = () => {
-  showAddModal.value = true
-}
-
-const handleSearch = () => {
-}
-
-const handlePageChange = (page: number) => {
-  currentPage.value = page
-}
-
-const editQuestion = (row: any) => {
-}
-
-const deleteQuestion = (id: number) => {
-  tableData.value = tableData.value.filter(item => item.id !== id)
-}
-
-const submitForm = () => {
-  showAddModal.value = false
-}
 </script>
 
-<style scoped>
-.page-container {
-  padding: 20px;
+<style scoped lang="css">
+.question-management {
+  width: 100%;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
   height: 100%;
-  overflow-y: auto;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
 }
 
-.page-header {
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-primary);
+}
+
+.stat-card:hover::after {
+  opacity: 1;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.05) 100%);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
-.page-header h2 {
-  font-size: 20px;
+.stat-icon.easy {
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, rgba(74, 222, 128, 0.05) 100%);
+  color: var(--success);
+}
+
+.stat-icon.medium {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0.05) 100%);
+  color: var(--warning);
+}
+
+.stat-icon.hard {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.2) 0%, rgba(248, 113, 113, 0.05) 100%);
+  color: var(--danger);
+}
+
+.stat-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Noto Serif SC', serif;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
   font-weight: 600;
-  margin: 0;
+  color: var(--success);
 }
 
-.icon {
-  margin-right: 5px;
+.stat-trend.up {
+  color: var(--success);
 }
 
-.search-bar {
+.stat-trend svg {
+  width: 16px;
+  height: 16px;
+}
+
+.stat-percent {
+  font-size: 18px;
+  font-weight: 700;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.content-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.content-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.3;
+}
+
+.card-header {
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
   align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.search-input {
-  width: 300px;
+.header-title h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-primary-strong);
+  transform: translateY(-2px);
+}
+
+.btn-primary svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.btn-secondary svg {
+  width: 18px;
+  height: 18px;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  gap: 20px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 12px;
 }
 
 .filter-select {
-  width: 150px;
+  padding: 10px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-select:hover {
+  border-color: var(--border-color);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 320px;
+}
+
+.search-wrapper svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+}
+
+.filter-search {
+  width: 100%;
+  padding: 10px 16px 10px 42px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.filter-search::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-search:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.table-container {
+  overflow-x: auto;
 }
 
 .data-table {
   width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead {
+  background: var(--bg-secondary);
+}
+
+.data-table th {
+  padding: 16px 28px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.3s;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.data-table td {
+  padding: 20px 28px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.id-cell {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.title-cell .title {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.difficulty-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.difficulty-badge.easy {
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--success);
+}
+
+.difficulty-badge.medium {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--warning);
+}
+
+.difficulty-badge.hard {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--danger);
+}
+
+.pass-rate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rate-bar {
+  flex: 1;
+  max-width: 120px;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rate-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.rate-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 40px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--primary);
+}
+
+.status-badge.draft {
+  background: rgba(156, 163, 175, 0.15);
+  color: var(--text-muted);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: var(--text-secondary);
+}
+
+.action-btn:hover {
+  border-color: var(--border-color);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--text-primary-color);
+}
+
+.action-btn.edit:hover {
+  border-color: rgba(96, 165, 250, 0.3);
+  background: rgba(96, 165, 250, 0.08);
+  color: var(--info);
+}
+
+.action-btn.delete:hover {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.08);
+  color: var(--danger);
+}
+
+.action-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .pagination {
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 20px;
+  gap: 8px;
+  padding: 24px;
+  border-top: 1px solid var(--border-light);
+}
+
+.page-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: var(--border-color);
+  color: var(--text-primary-color);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.page-btn.active {
+  background: var(--primary-gradient);
+  border-color: transparent;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-dots {
+  color: var(--text-muted);
+  padding: 0 8px;
 }
 </style>

@@ -1,72 +1,197 @@
 <template>
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo">
-        <Notebook class="logo-icon" />
-        <span class="logo-text">刷题后台</span>
+    <div class="sidebar-inner">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 48 48" fill="none">
+              <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#2563eb"/>
+                  <stop offset="50%" style="stop-color:#3b82f6"/>
+                  <stop offset="100%" style="stop-color:#2563eb"/>
+                </linearGradient>
+              </defs>
+              <rect width="48" height="48" rx="14" fill="url(#logoGrad)"/>
+              <path d="M12 15h24M12 24h18M12 33h14" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="36" cy="37" r="6" fill="#ffffff"/>
+            </svg>
+          </div>
+          <span class="logo-text">行测题库</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <router-link 
+          v-for="item in menuItems" 
+          :key="item.path" 
+          :to="item.path" 
+          class="nav-item"
+          active-class="active"
+        >
+          <span class="nav-text">{{ item.name }}</span>
+          <component :is="item.icon" class="nav-icon"/>
+        </router-link>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">
+            <span>管</span>
+          </div>
+          <div class="user-info">
+            <span class="user-name">管理员</span>
+            <span class="user-role">超级管理员</span>
+          </div>
+        </div>
       </div>
     </div>
-    <el-menu
-      :default-active="activeMenu"
-      class="sidebar-menu"
-      mode="vertical"
-      background-color="#001529"
-      text-color="#bfcbd9"
-      active-text-color="#fff"
-    >
-      <el-menu-item index="/questions">
-        <component :is="icons.Edit" />
-        <span>题目管理</span>
-      </el-menu-item>
-      <el-menu-item index="/bank">
-        <component :is="icons.Box" />
-        <span>题库管理</span>
-      </el-menu-item>
-      <el-menu-item index="/users">
-        <component :is="icons.User" />
-        <span>用户管理</span>
-      </el-menu-item>
-      <el-menu-item index="/statistics">
-        <component :is="icons.TrendCharts" />
-        <span>统计分析</span>
-      </el-menu-item>
-    </el-menu>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Notebook, Edit, Box, User, TrendCharts } from '@element-plus/icons-vue'
+import { h } from 'vue'
 
-const route = useRoute()
-const router = useRouter()
-
-const icons = {
-  Edit,
-  Box,
-  User,
-  TrendCharts
-}
-
-const activeMenu = computed(() => route.path)
-
-const handleMenuClick = (index: string) => {
-  router.push(index)
-}
+const menuItems = [
+  {
+    name: '题目管理',
+    path: '/questions',
+    icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
+      h('path', { 
+        d: 'M9 12h6M9 16h6M9 8h6', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      }),
+      h('rect', { x: '3', y: '3', width: '18', height: '18', rx: '2', stroke: 'currentColor', 'stroke-width': '2' })
+    ])
+  },
+  {
+    name: '模块管理',
+    path: '/bank',
+    icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
+      h('path', { 
+        d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      }),
+      h('path', { 
+        d: 'M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      })
+    ])
+  },
+  {
+    name: '用户管理',
+    path: '/users',
+    icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
+      h('path', { 
+        d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      }),
+      h('circle', { cx: '9', cy: '7', r: '4', stroke: 'currentColor', 'stroke-width': '2' }),
+      h('path', { 
+        d: 'M23 21v-2a4 4 0 0 0-3-3.87', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      }),
+      h('path', { 
+        d: 'M16 3.13a4 4 0 0 1 0 7.75', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      })
+    ])
+  },
+  {
+    name: '数据分析',
+    path: '/statistics',
+    icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
+      h('path', { 
+        d: 'M21 21H3', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      }),
+      h('path', { 
+        d: 'M5 21V9', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      }),
+      h('path', { 
+        d: 'M12 21V5', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      }),
+      h('path', { 
+        d: 'M19 21V12', 
+        stroke: 'currentColor', 
+        'stroke-width': '2', 
+        'stroke-linecap': 'round' 
+      })
+    ])
+  }
+]
 </script>
 
-<style scoped>
+<style scoped lang="css">
 .sidebar {
-  width: 200px;
+  width: 280px;
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border-right: 1px solid var(--border-light);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
   height: 100%;
-  background-color: #001529;
-  flex-shrink: 0;
+  background: linear-gradient(180deg, transparent, var(--primary), transparent);
+  opacity: 0.3;
+}
+
+.sidebar-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 18px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.3) transparent;
+}
+
+.sidebar-inner::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-inner::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.3);
+  border-radius: 2px;
+}
+
+.sidebar-inner::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.5);
 }
 
 .sidebar-header {
-  padding: 20px;
-  border-bottom: 1px solid #1f2d3d;
+  margin-bottom: 24px;
 }
 
 .logo {
@@ -76,18 +201,148 @@ const handleMenuClick = (index: string) => {
 }
 
 .logo-icon {
-  font-size: 24px;
-  color: #409eff;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.logo-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.3));
 }
 
 .logo-text {
+  font-family: 'Noto Serif SC', serif;
   font-size: 18px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
 }
 
-.sidebar-menu {
-  height: calc(100% - 65px);
-  border-right: none;
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--primary-gradient);
+  border-radius: 0 3px 3px 0;
+  transition: height 0.3s;
+}
+
+.nav-item:hover {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--text-primary-color);
+}
+
+.nav-item:hover::before {
+  height: 50%;
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.05) 100%);
+  color: var(--text-primary-color);
+  border: 1px solid var(--border-color);
+}
+
+.nav-item.active::before {
+  height: 60%;
+}
+
+.nav-text {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.nav-icon {
+  width: 45px;
+  height: 45px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.icon-svg {
+  width: 45px;
+  height: 45px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.user-profile:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.user-role {
+  font-size: 11px;
+  color: var(--text-muted);
 }
 </style>
