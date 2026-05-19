@@ -35,22 +35,8 @@
           <div class="bank-stats">
             <div class="stat-item">
               <span class="stat-num">{{ bank.count }}</span>
-              <span class="stat-label">题目</span>
+              <span class="stat-label">题目数量</span>
             </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <span class="stat-num">{{ bank.completed }}</span>
-              <span class="stat-label">已完成</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat-item">
-              <span class="stat-num">{{ bank.progress }}%</span>
-              <span class="stat-label">进度</span>
-            </div>
-          </div>
-
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: bank.progress + '%' }"></div>
           </div>
 
           <div class="bank-footer">
@@ -231,48 +217,33 @@ const banks = ref([
 .bank-stats {
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  margin-bottom: 18px;
+  justify-content: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
 }
 
 .stat-item {
-  text-align: center;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .stat-num {
-  display: block;
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
   font-family: 'Noto Serif SC', serif;
-  color: var(--text-primary-color);
-  margin-bottom: 4px;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
-}
-
-.stat-divider {
-  width: 1px;
-  height: 32px;
-  background: var(--border-light);
-}
-
-.progress-bar {
-  width: 100%;
-  height: 6px;
-  background: var(--bg-tertiary);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 18px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--primary-gradient);
-  border-radius: 3px;
-  transition: width 0.6s ease;
+  font-weight: 500;
 }
 
 .bank-footer {

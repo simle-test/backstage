@@ -64,7 +64,6 @@
           <span class="subtitle">管理所有平台用户</span>
         </div>
         <div class="header-actions">
-          <button class="btn-secondary">导出</button>
           <button class="btn-primary">添加用户</button>
         </div>
       </div>

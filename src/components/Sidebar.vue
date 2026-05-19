@@ -44,6 +44,14 @@
             <span class="user-role">超级管理员</span>
           </div>
         </div>
+        <button class="logout-btn" @click="handleLogout">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>退出登录</span>
+        </button>
       </div>
     </div>
   </aside>
@@ -51,6 +59,15 @@
 
 <script setup lang="ts">
 import { h } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const handleLogout = () => {
+  if (confirm('确定要退出登录吗？')) {
+    router.push('/login')
+  }
+}
 
 const menuItems = [
   {
@@ -344,5 +361,34 @@ const menuItems = [
 .user-role {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.logout-btn svg {
+  width: 16px;
+  height: 16px;
 }
 </style>
