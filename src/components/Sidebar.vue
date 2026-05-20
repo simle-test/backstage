@@ -72,7 +72,7 @@ const handleLogout = () => {
 const menuItems = [
   {
     name: '题目管理',
-    path: '/questions',
+    path: '/app/questions',
     icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
       h('path', { 
         d: 'M9 12h6M9 16h6M9 8h6', 
@@ -85,7 +85,7 @@ const menuItems = [
   },
   {
     name: '模块管理',
-    path: '/bank',
+    path: '/app/bank',
     icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
       h('path', { 
         d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20', 
@@ -103,7 +103,7 @@ const menuItems = [
   },
   {
     name: '用户管理',
-    path: '/users',
+    path: '/app/users',
     icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
       h('path', { 
         d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 
@@ -128,7 +128,7 @@ const menuItems = [
   },
   {
     name: '数据分析',
-    path: '/statistics',
+    path: '/app/statistics',
     icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
       h('path', { 
         d: 'M21 21H3', 

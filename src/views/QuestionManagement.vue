@@ -147,6 +147,45 @@
               </td>
               <td>
                 <div class="action-buttons">
+                  <div class="dropdown" :class="{ active: item.showDropdown }">
+                    <button class="action-btn view" @click="toggleDropdown(item.id)">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </button>
+                    <div class="dropdown-content">
+                      <div class="dropdown-header">
+                        <span class="dropdown-title">题目详情</span>
+                        <button class="close-btn" @click="toggleDropdown(item.id)">
+                          <svg viewBox="0 0 24 24" fill="none">
+                            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div class="dropdown-body">
+                        <div class="detail-section">
+                          <div class="detail-label">题目内容</div>
+                          <div class="detail-content">{{ item.content }}</div>
+                        </div>
+                        <div class="detail-section">
+                          <div class="detail-label">选项</div>
+                          <div class="options-list">
+                            <div v-for="(opt, idx) in item.options" :key="idx" class="option-item" :class="{ correct: opt === item.answer }">
+                              <span class="option-label">{{ String.fromCharCode(65 + idx) }}.</span>
+                              <span class="option-text">{{ opt }}</span>
+                              <span v-if="opt === item.answer" class="correct-badge">正确答案</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="detail-section">
+                          <div class="detail-label">解析</div>
+                          <div class="detail-content">{{ item.analysis || '暂无解析' }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <button class="action-btn edit">
                     <svg viewBox="0 0 24 24" fill="none">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -183,15 +222,25 @@
 import { ref } from 'vue'
 
 const questions = ref([
-  { id: 1, title: '言语理解与表达：主旨概括题', difficulty: 'easy', difficultyText: '简单', category: '言语理解', passRate: 72.5, status: 'active', statusText: '已发布' },
-  { id: 2, title: '数量关系：行程问题', difficulty: 'easy', difficultyText: '简单', category: '数量关系', passRate: 65.3, status: 'active', statusText: '已发布' },
-  { id: 3, title: '判断推理：图形推理题', difficulty: 'medium', difficultyText: '中等', category: '判断推理', passRate: 48.2, status: 'active', statusText: '已发布' },
-  { id: 4, title: '资料分析：增长率计算', difficulty: 'medium', difficultyText: '中等', category: '资料分析', passRate: 52.1, status: 'draft', statusText: '草稿' },
-  { id: 5, title: '常识判断：时事政治题', difficulty: 'medium', difficultyText: '中等', category: '常识判断', passRate: 60.8, status: 'active', statusText: '已发布' },
-  { id: 6, title: '数量关系：排列组合题', difficulty: 'hard', difficultyText: '困难', category: '数量关系', passRate: 32.4, status: 'active', statusText: '已发布' },
-  { id: 7, title: '判断推理：逻辑判断题', difficulty: 'hard', difficultyText: '困难', category: '判断推理', passRate: 28.6, status: 'draft', statusText: '草稿' },
-  { id: 8, title: '资料分析：比重变化题', difficulty: 'hard', difficultyText: '困难', category: '资料分析', passRate: 18.9, status: 'draft', statusText: '草稿' }
+  { id: 1, title: '言语理解与表达：主旨概括题', difficulty: 'easy', difficultyText: '简单', category: '言语理解', passRate: 72.5, status: 'active', statusText: '已发布', showDropdown: false, content: '以下这段文字的主旨是什么？', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项A', analysis: '这是一道主旨概括题，需要从文中提取核心观点。' },
+  { id: 2, title: '数量关系：行程问题', difficulty: 'easy', difficultyText: '简单', category: '数量关系', passRate: 65.3, status: 'active', statusText: '已发布', showDropdown: false, content: '甲乙两地相距120公里，A车从甲地出发...', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项B', analysis: '行程问题需要掌握速度、时间、距离的关系。' },
+  { id: 3, title: '判断推理：图形推理题', difficulty: 'medium', difficultyText: '中等', category: '判断推理', passRate: 48.2, status: 'active', statusText: '已发布', showDropdown: false, content: '观察以下图形的规律，选择最合适的选项。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项C', analysis: '图形推理需要观察图形的数量、位置、形状等变化规律。' },
+  { id: 4, title: '资料分析：增长率计算', difficulty: 'medium', difficultyText: '中等', category: '资料分析', passRate: 52.1, status: 'draft', statusText: '草稿', showDropdown: false, content: '根据以下数据计算增长率。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项A', analysis: '增长率计算公式：(现值-基期值)/基期值×100%。' },
+  { id: 5, title: '常识判断：时事政治题', difficulty: 'medium', difficultyText: '中等', category: '常识判断', passRate: 60.8, status: 'active', statusText: '已发布', showDropdown: false, content: '以下关于时事政治的描述正确的是？', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项D', analysis: '时事政治需要关注最新的政策动态和重要事件。' },
+  { id: 6, title: '数量关系：排列组合题', difficulty: 'hard', difficultyText: '困难', category: '数量关系', passRate: 32.4, status: 'active', statusText: '已发布', showDropdown: false, content: '从5个人中选出3个人组成小组，有多少种选法？', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项B', analysis: '排列组合公式：C(n,m) = n!/(m!(n-m)!)。' },
+  { id: 7, title: '判断推理：逻辑判断题', difficulty: 'hard', difficultyText: '困难', category: '判断推理', passRate: 28.6, status: 'draft', statusText: '草稿', showDropdown: false, content: '根据以下逻辑关系，判断结论是否正确。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项C', analysis: '逻辑判断需要掌握充分必要条件、逆否命题等基本概念。' },
+  { id: 8, title: '资料分析：比重变化题', difficulty: 'hard', difficultyText: '困难', category: '资料分析', passRate: 18.9, status: 'draft', statusText: '草稿', showDropdown: false, content: '分析以下数据中各部分比重的变化趋势。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项A', analysis: '比重变化分析需要关注各部分占总体的比例变化。' }
 ])
+
+const toggleDropdown = (id: number) => {
+  questions.value.forEach(q => {
+    if (q.id === id) {
+      q.showDropdown = !q.showDropdown
+    } else {
+      q.showDropdown = false
+    }
+  })
+}
 </script>
 
 <style scoped lang="css">
@@ -634,6 +683,186 @@ const questions = ref([
 .action-btn svg {
   width: 18px;
   height: 18px;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.action-btn.view:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-primary);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 8px;
+}
+
+.dropdown.active .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  border-radius: 12px 12px 0 0;
+}
+
+.dropdown-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.close-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.close-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.dropdown-body {
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.dropdown-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-body::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.dropdown-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.dropdown-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.detail-section {
+  margin-bottom: 20px;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-content {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  transition: all 0.3s;
+}
+
+.option-item.correct {
+  background: rgba(74, 222, 128, 0.1);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.option-label {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.option-item.correct .option-label {
+  background: var(--success);
+  color: #ffffff;
+}
+
+.option-text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.correct-badge {
+  padding: 4px 10px;
+  background: var(--success);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
 }
 
 .pagination {
