@@ -9,12 +9,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">12,458</div>
+          <div class="stat-value">{{ stats.total.toLocaleString() }}</div>
           <div class="stat-label">总用户数</div>
         </div>
-        <div class="stat-trend up">+8.2%</div>
+        <div class="stat-trend up">+{{ stats.avgActiveDays }}%</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon easy">
           <svg viewBox="0 0 24 24" fill="none">
@@ -23,12 +23,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">3,847</div>
+          <div class="stat-value">{{ stats.active.toLocaleString() }}</div>
           <div class="stat-label">活跃用户</div>
         </div>
-        <div class="stat-percent">30.9%</div>
+        <div class="stat-percent">{{ ((stats.active / stats.total) * 100).toFixed(1) }}%</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon medium">
           <svg viewBox="0 0 24 24" fill="none">
@@ -37,12 +37,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">892</div>
+          <div class="stat-value">{{ stats.todayNew.toLocaleString() }}</div>
           <div class="stat-label">今日新增</div>
         </div>
-        <div class="stat-percent">7.2%</div>
+        <div class="stat-percent">+{{ stats.avgActiveDays }}%</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon hard">
           <svg viewBox="0 0 24 24" fill="none">
@@ -141,16 +141,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getUserList, getUserStatistics } from '@/api/user'
+import { ElMessage } from 'element-plus'
 
-const users = ref([
-  { id: 1, name: '李明', email: 'liming@example.com', avatar: '李', color: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)', role: 'user', roleText: '用户', solved: 256, passRate: 72, joinDate: '2024-01-15', status: 'active', statusText: '正常' },
-  { id: 2, name: '王芳', email: 'wangfang@example.com', avatar: '王', color: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)', role: 'admin', roleText: '管理员', solved: 489, passRate: 85, joinDate: '2023-08-20', status: 'active', statusText: '正常' },
-  { id: 3, name: '张伟', email: 'zhangwei@example.com', avatar: '张', color: 'linear-gradient(135deg, #06b6d4 0%, #67e8f9 100%)', role: 'user', roleText: '用户', solved: 178, passRate: 64, joinDate: '2024-02-10', status: 'active', statusText: '正常' },
-  { id: 4, name: '刘洋', email: 'liuyang@example.com', avatar: '刘', color: 'linear-gradient(135deg, #22c55e 0%, #86efac 100%)', role: 'user', roleText: '用户', solved: 89, passRate: 58, joinDate: '2024-03-05', status: 'inactive', statusText: '离线' },
-  { id: 5, name: '陈静', email: 'chenjing@example.com', avatar: '陈', color: 'linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%)', role: 'vip', roleText: 'VIP', solved: 367, passRate: 78, joinDate: '2023-11-22', status: 'active', statusText: '正常' },
-  { id: 6, name: '杨林', email: 'yanglin@example.com', avatar: '杨', color: 'linear-gradient(135deg, #ef4444 0%, #fca5a5 100%)', role: 'user', roleText: '用户', solved: 45, passRate: 52, joinDate: '2024-03-28', status: 'banned', statusText: '封禁' }
-])
+interface User {
+  id: number
+  name: string
+  email: string
+  avatar: string
+  color: string
+  role: string
+  roleText: string
+  solved: number
+  passRate: number
+  joinDate: string
+  status: string
+  statusText: string
+}
+
+interface Statistics {
+  total: number
+  active: number
+  todayNew: number
+  avgActiveDays: number
+}
+
+const users = ref<User[]>([])
+const stats = ref<Statistics>({ total: 0, active: 0, todayNew: 0, avgActiveDays: 0 })
+const loading = ref(false)
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const [userRes, statRes] = await Promise.all([
+      getUserList({ page: 1, size: 100 }),
+      getUserStatistics()
+    ])
+
+    if (userRes.data.code === 200) {
+      const list = userRes.data.data.list.map((item: any) => ({
+        id: item.id,
+        name: item.username,
+        email: item.email,
+        avatar: item.avatar || item.username.charAt(0),
+        color: item.avatarColor || 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+        role: item.role,
+        roleText: item.roleName,
+        solved: item.practiceCount,
+        passRate: item.passRate,
+        joinDate: item.joinDate,
+        status: item.status,
+        statusText: item.statusText
+      }))
+      users.value = list
+    }
+
+    if (statRes.data.code === 200) {
+      stats.value = statRes.data.data
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped lang="css">

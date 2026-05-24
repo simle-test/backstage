@@ -139,6 +139,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { register } from '@/api/auth'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const showPassword = ref(false)
@@ -175,9 +177,23 @@ const isValid = computed(() => {
 
 const handleRegister = async () => {
   loading.value = true
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  loading.value = false
-  router.push('/login')
+  try {
+    const res = await register({
+      username: form.username,
+      email: form.email,
+      password: form.password
+    })
+    if (res.data.code === 200) {
+      ElMessage.success('注册成功，请登录')
+      router.push('/login')
+    } else {
+      ElMessage.error(res.data.message || '注册失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '注册失败，请检查网络')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

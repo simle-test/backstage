@@ -9,7 +9,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">1,248</div>
+          <div class="stat-value">{{ stats.total.toLocaleString() }}</div>
           <div class="stat-label">题目总数</div>
         </div>
         <div class="stat-trend up">
@@ -20,7 +20,7 @@
           +12.5%
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon easy">
           <svg viewBox="0 0 24 24" fill="none">
@@ -29,12 +29,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">456</div>
+          <div class="stat-value">{{ stats.easyCount.toLocaleString() }}</div>
           <div class="stat-label">简单题目</div>
         </div>
-        <div class="stat-percent">36.5%</div>
+        <div class="stat-percent">{{ stats.total > 0 ? ((stats.easyCount / stats.total) * 100).toFixed(1) : 0 }}%</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon medium">
           <svg viewBox="0 0 24 24" fill="none">
@@ -42,12 +42,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">623</div>
+          <div class="stat-value">{{ stats.mediumCount.toLocaleString() }}</div>
           <div class="stat-label">中等题目</div>
         </div>
-        <div class="stat-percent">49.9%</div>
+        <div class="stat-percent">{{ stats.total > 0 ? ((stats.mediumCount / stats.total) * 100).toFixed(1) : 0 }}%</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon hard">
           <svg viewBox="0 0 24 24" fill="none">
@@ -55,10 +55,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">169</div>
+          <div class="stat-value">{{ stats.hardCount.toLocaleString() }}</div>
           <div class="stat-label">困难题目</div>
         </div>
-        <div class="stat-percent">13.6%</div>
+        <div class="stat-percent">{{ stats.total > 0 ? ((stats.hardCount / stats.total) * 100).toFixed(1) : 0 }}%</div>
       </div>
     </div>
 
@@ -219,18 +219,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getQuestionList, getQuestionStatistics } from '@/api/question'
+import { ElMessage } from 'element-plus'
 
-const questions = ref([
-  { id: 1, title: '言语理解与表达：主旨概括题', difficulty: 'easy', difficultyText: '简单', category: '言语理解', passRate: 72.5, status: 'active', statusText: '已发布', showDropdown: false, content: '以下这段文字的主旨是什么？', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项A', analysis: '这是一道主旨概括题，需要从文中提取核心观点。' },
-  { id: 2, title: '数量关系：行程问题', difficulty: 'easy', difficultyText: '简单', category: '数量关系', passRate: 65.3, status: 'active', statusText: '已发布', showDropdown: false, content: '甲乙两地相距120公里，A车从甲地出发...', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项B', analysis: '行程问题需要掌握速度、时间、距离的关系。' },
-  { id: 3, title: '判断推理：图形推理题', difficulty: 'medium', difficultyText: '中等', category: '判断推理', passRate: 48.2, status: 'active', statusText: '已发布', showDropdown: false, content: '观察以下图形的规律，选择最合适的选项。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项C', analysis: '图形推理需要观察图形的数量、位置、形状等变化规律。' },
-  { id: 4, title: '资料分析：增长率计算', difficulty: 'medium', difficultyText: '中等', category: '资料分析', passRate: 52.1, status: 'draft', statusText: '草稿', showDropdown: false, content: '根据以下数据计算增长率。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项A', analysis: '增长率计算公式：(现值-基期值)/基期值×100%。' },
-  { id: 5, title: '常识判断：时事政治题', difficulty: 'medium', difficultyText: '中等', category: '常识判断', passRate: 60.8, status: 'active', statusText: '已发布', showDropdown: false, content: '以下关于时事政治的描述正确的是？', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项D', analysis: '时事政治需要关注最新的政策动态和重要事件。' },
-  { id: 6, title: '数量关系：排列组合题', difficulty: 'hard', difficultyText: '困难', category: '数量关系', passRate: 32.4, status: 'active', statusText: '已发布', showDropdown: false, content: '从5个人中选出3个人组成小组，有多少种选法？', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项B', analysis: '排列组合公式：C(n,m) = n!/(m!(n-m)!)。' },
-  { id: 7, title: '判断推理：逻辑判断题', difficulty: 'hard', difficultyText: '困难', category: '判断推理', passRate: 28.6, status: 'draft', statusText: '草稿', showDropdown: false, content: '根据以下逻辑关系，判断结论是否正确。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项C', analysis: '逻辑判断需要掌握充分必要条件、逆否命题等基本概念。' },
-  { id: 8, title: '资料分析：比重变化题', difficulty: 'hard', difficultyText: '困难', category: '资料分析', passRate: 18.9, status: 'draft', statusText: '草稿', showDropdown: false, content: '分析以下数据中各部分比重的变化趋势。', options: ['选项A', '选项B', '选项C', '选项D'], answer: '选项A', analysis: '比重变化分析需要关注各部分占总体的比例变化。' }
-])
+interface Question {
+  id: number
+  title: string
+  difficulty: string
+  difficultyText: string
+  category: string
+  categoryText: string
+  passRate: number
+  status: string
+  statusText: string
+  showDropdown: boolean
+  content?: string
+  options?: string[]
+  answer?: string
+  analysis?: string
+}
+
+interface Statistics {
+  total: number
+  easyCount: number
+  mediumCount: number
+  hardCount: number
+  categoryList: { category: string; categoryText: string; count: number }[]
+}
+
+const questions = ref<Question[]>([])
+const stats = ref<Statistics>({ total: 0, easyCount: 0, mediumCount: 0, hardCount: 0, categoryList: [] })
+const loading = ref(false)
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const [questionRes, statRes] = await Promise.all([
+      getQuestionList({ page: 1, size: 100 }),
+      getQuestionStatistics()
+    ])
+
+    if (questionRes.data.code === 200) {
+      questions.value = questionRes.data.data.list.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        difficulty: item.difficulty,
+        difficultyText: item.difficultyText,
+        category: item.category,
+        categoryText: item.categoryText,
+        passRate: item.passRate || 0,
+        status: item.status,
+        statusText: item.status === 'active' ? '已发布' : '草稿',
+        showDropdown: false,
+        content: item.content,
+        options: item.options,
+        answer: item.answer,
+        analysis: item.analysis
+      }))
+    }
+
+    if (statRes.data.code === 200) {
+      stats.value = statRes.data.data
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取数据失败')
+  } finally {
+    loading.value = false
+  }
+}
 
 const toggleDropdown = (id: number) => {
   questions.value.forEach(q => {
@@ -241,6 +298,10 @@ const toggleDropdown = (id: number) => {
     }
   })
 }
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped lang="css">

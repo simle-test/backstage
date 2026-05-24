@@ -53,16 +53,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getBankList } from '@/api/bank'
+import { ElMessage } from 'element-plus'
 
-const banks = ref([
-  { id: 1, name: '言语理解与表达', desc: '选词填空、片段阅读、语句表达', color: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)', count: 320, completed: 189, progress: 59, updateTime: '2小时前' },
-  { id: 2, name: '数量关系', desc: '数字推理、数学运算专项训练', color: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)', count: 200, completed: 134, progress: 67, updateTime: '5小时前' },
-  { id: 3, name: '判断推理', desc: '图形推理、定义判断、类比推理、逻辑判断', color: 'linear-gradient(135deg, #06b6d4 0%, #67e8f9 100%)', count: 280, completed: 168, progress: 60, updateTime: '1天前' },
-  { id: 4, name: '资料分析', desc: '速算技巧、统计术语、高频考点', color: 'linear-gradient(135deg, #22c55e 0%, #86efac 100%)', count: 180, completed: 151, progress: 84, updateTime: '2天前' },
-  { id: 5, name: '常识判断', desc: '政治、经济、法律、历史、地理、科技', color: 'linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%)', count: 250, completed: 100, progress: 40, updateTime: '3天前' },
-  { id: 6, name: '历年真题', desc: '国考、省考、联考真题精选', color: 'linear-gradient(135deg, #ef4444 0%, #fca5a5 100%)', count: 350, completed: 165, progress: 47, updateTime: '1周前' }
-])
+interface Bank {
+  id: number
+  name: string
+  desc: string
+  color: string
+  count: number
+  updateTime: string
+}
+
+const banks = ref<Bank[]>([])
+const loading = ref(false)
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const res = await getBankList()
+    if (res.data.code === 200) {
+      banks.value = res.data.data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        desc: item.desc || '',
+        color: item.color || 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+        count: item.questionCount || 0,
+        updateTime: item.updatedAt || ''
+      }))
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped lang="css">

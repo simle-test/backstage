@@ -94,6 +94,8 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { login } from '@/api/auth'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const showPassword = ref(false)
@@ -107,9 +109,24 @@ const form = reactive({
 
 const handleLogin = async () => {
   loading.value = true
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  loading.value = false
-  router.push('/app/questions')
+  try {
+    const res = await login({
+      username: form.username,
+      password: form.password
+    })
+    if (res.data.code === 200) {
+      localStorage.setItem('token', res.data.data.token)
+      localStorage.setItem('user', JSON.stringify(res.data.data.user))
+      ElMessage.success('登录成功')
+      router.push('/app/questions')
+    } else {
+      ElMessage.error(res.data.message || '登录失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '登录失败，请检查网络')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

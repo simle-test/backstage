@@ -10,12 +10,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">1,580</div>
+          <div class="stat-value">{{ overallStats.totalQuestions.toLocaleString() }}</div>
           <div class="stat-label">总题数</div>
         </div>
-        <div class="stat-trend up">+156</div>
+        <div class="stat-trend up">+{{ overallStats.totalQuestions }}</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon easy">
           <svg viewBox="0 0 24 24" fill="none">
@@ -24,12 +24,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">124,568</div>
+          <div class="stat-value">{{ overallStats.totalSubmissions.toLocaleString() }}</div>
           <div class="stat-label">总提交</div>
         </div>
         <div class="stat-percent">+12.4%</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon medium">
           <svg viewBox="0 0 24 24" fill="none">
@@ -38,12 +38,12 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">12,458</div>
+          <div class="stat-value">{{ overallStats.totalUsers.toLocaleString() }}</div>
           <div class="stat-label">总用户</div>
         </div>
         <div class="stat-percent">+8.2%</div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon hard">
           <svg viewBox="0 0 24 24" fill="none">
@@ -51,7 +51,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">68.7%</div>
+          <div class="stat-value">{{ overallStats.avgPassRate }}%</div>
           <div class="stat-label">平均通过率</div>
         </div>
         <div class="stat-percent">+3.2%</div>
@@ -131,31 +131,97 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getOverallStatistics, getDailyTrend, getCategoryScores, getRanking } from '@/api/statistics'
+import { ElMessage } from 'element-plus'
 
-const chartData = ref([
-  { day: '周一', value: 65 },
-  { day: '周二', value: 80 },
-  { day: '周三', value: 72 },
-  { day: '周四', value: 90 },
-  { day: '周五', value: 85 },
-  { day: '周六', value: 95 },
-  { day: '周日', value: 75 }
-])
+interface OverallStats {
+  totalQuestions: number
+  totalSubmissions: number
+  totalUsers: number
+  avgPassRate: number
+}
 
-const difficultyData = ref({
-  easy: 75.2,
-  medium: 68.5,
-  hard: 58.3
+interface ChartItem {
+  day: string
+  value: number
+}
+
+interface RankingItem {
+  id: number
+  name: string
+  avatar: string
+  color: string
+  desc: string
+  solved: number
+}
+
+const overallStats = ref<OverallStats>({
+  totalQuestions: 0,
+  totalSubmissions: 0,
+  totalUsers: 0,
+  avgPassRate: 0
 })
 
-const rankingData = ref([
-  { id: 1, name: '李明', avatar: '李', color: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)', desc: '国考冲刺', solved: 128 },
-  { id: 2, name: '王芳', avatar: '王', color: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)', desc: '省考备考', solved: 112 },
-  { id: 3, name: '张伟', avatar: '张', color: 'linear-gradient(135deg, #06b6d4 0%, #67e8f9 100%)', desc: '行测大神', solved: 98 },
-  { id: 4, name: '刘洋', avatar: '刘', color: 'linear-gradient(135deg, #22c55e 0%, #86efac 100%)', desc: '全职备考', solved: 85 },
-  { id: 5, name: '陈静', avatar: '陈', color: 'linear-gradient(135deg, #f59e0b 0%, #fcd34d 100%)', desc: '在职考公', solved: 72 }
-])
+const chartData = ref<ChartItem[]>([])
+const difficultyData = ref({
+  easy: 0,
+  medium: 0,
+  hard: 0
+})
+const rankingData = ref<RankingItem[]>([])
+const loading = ref(false)
+
+const loadData = async () => {
+  loading.value = true
+  try {
+    const [overallRes, dailyRes, categoryRes, rankingRes] = await Promise.all([
+      getOverallStatistics(),
+      getDailyTrend(7),
+      getCategoryScores(),
+      getRanking(10)
+    ])
+
+    if (overallRes.data.code === 200) {
+      overallStats.value = overallRes.data.data
+    }
+
+    if (dailyRes.data.code === 200) {
+      const maxValue = Math.max(...dailyRes.data.data.map((item: any) => item.count))
+      chartData.value = dailyRes.data.data.map((item: any) => ({
+        day: item.date.slice(5),
+        value: maxValue > 0 ? (item.count / maxValue) * 100 : 0
+      }))
+    }
+
+    if (categoryRes.data.code === 200) {
+      difficultyData.value = {
+        easy: categoryRes.data.data.easyScore || 0,
+        medium: categoryRes.data.data.mediumScore || 0,
+        hard: categoryRes.data.data.hardScore || 0
+      }
+    }
+
+    if (rankingRes.data.code === 200) {
+      rankingData.value = rankingRes.data.data.map((item: any) => ({
+        id: item.rank,
+        name: item.username,
+        avatar: item.avatar || item.username.charAt(0),
+        color: item.avatarColor || 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+        desc: item.title || '',
+        solved: item.practiceCount
+      }))
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped lang="css">
