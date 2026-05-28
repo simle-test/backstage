@@ -84,7 +84,9 @@ const loadData = async () => {
       }))
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '获取数据失败')
+    const errMsg = error.response?.data?.message || error.response?.data?.msg || error.message || '获取数据失败'
+    ElMessage.error(errMsg)
+    console.error('获取题库数据失败:', error.response?.data || error)
   } finally {
     loading.value = false
   }

@@ -9,10 +9,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.total.toLocaleString() }}</div>
+          <div class="stat-value">{{ (stats.total ?? 0).toLocaleString() }}</div>
           <div class="stat-label">总用户数</div>
         </div>
-        <div class="stat-trend up">+{{ stats.avgActiveDays }}%</div>
+        <div class="stat-trend up">+{{ (stats.avgActiveDays ?? 0) }}%</div>
       </div>
 
       <div class="stat-card">
@@ -23,10 +23,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.active.toLocaleString() }}</div>
+          <div class="stat-value">{{ (stats.active ?? 0).toLocaleString() }}</div>
           <div class="stat-label">活跃用户</div>
         </div>
-        <div class="stat-percent">{{ ((stats.active / stats.total) * 100).toFixed(1) }}%</div>
+        <div class="stat-percent">{{ ((stats.active ?? 0) / ((stats.total ?? 0) || 1) * 100).toFixed(1) }}%</div>
       </div>
 
       <div class="stat-card">
@@ -37,10 +37,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.todayNew.toLocaleString() }}</div>
+          <div class="stat-value">{{ (stats.todayNew ?? 0).toLocaleString() }}</div>
           <div class="stat-label">今日新增</div>
         </div>
-        <div class="stat-percent">+{{ stats.avgActiveDays }}%</div>
+        <div class="stat-percent">+{{ (stats.avgActiveDays ?? 0) }}%</div>
       </div>
 
       <div class="stat-card">
@@ -201,7 +201,9 @@ const loadData = async () => {
       stats.value = statRes.data.data
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '获取数据失败')
+    const errMsg = error.response?.data?.message || error.response?.data?.msg || error.message || '获取数据失败'
+    ElMessage.error(errMsg)
+    console.error('获取用户数据失败:', error.response?.data || error)
   } finally {
     loading.value = false
   }

@@ -10,10 +10,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ overallStats.totalQuestions.toLocaleString() }}</div>
+          <div class="stat-value">{{ (overallStats.totalQuestions ?? 0).toLocaleString() }}</div>
           <div class="stat-label">总题数</div>
         </div>
-        <div class="stat-trend up">+{{ overallStats.totalQuestions }}</div>
+        <div class="stat-trend up">+{{ (overallStats.totalQuestions ?? 0) }}</div>
       </div>
 
       <div class="stat-card">
@@ -24,7 +24,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ overallStats.totalSubmissions.toLocaleString() }}</div>
+          <div class="stat-value">{{ (overallStats.totalSubmissions ?? 0).toLocaleString() }}</div>
           <div class="stat-label">总提交</div>
         </div>
         <div class="stat-percent">+12.4%</div>
@@ -38,7 +38,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ overallStats.totalUsers.toLocaleString() }}</div>
+          <div class="stat-value">{{ (overallStats.totalUsers ?? 0).toLocaleString() }}</div>
           <div class="stat-label">总用户</div>
         </div>
         <div class="stat-percent">+8.2%</div>
@@ -51,7 +51,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ overallStats.avgPassRate }}%</div>
+          <div class="stat-value">{{ (overallStats.avgPassRate ?? 0) }}%</div>
           <div class="stat-label">平均通过率</div>
         </div>
         <div class="stat-percent">+3.2%</div>
@@ -213,7 +213,9 @@ const loadData = async () => {
       }))
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '获取数据失败')
+    const errMsg = error.response?.data?.message || error.response?.data?.msg || error.message || '获取数据失败'
+    ElMessage.error(errMsg)
+    console.error('获取统计数据失败:', error.response?.data || error)
   } finally {
     loading.value = false
   }

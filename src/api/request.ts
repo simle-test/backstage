@@ -24,9 +24,12 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   (response: AxiosResponse) => {
-    const { code } = response.data
-    if (code !== 200) {
-      return Promise.reject(new Error(response.data.message || 'Request failed'))
+    const data = response.data
+    if (data && typeof data === 'object') {
+      const { code } = data
+      if (code !== undefined && code !== 200) {
+        return Promise.reject(new Error(data.message || 'Request failed'))
+      }
     }
     return response
   },

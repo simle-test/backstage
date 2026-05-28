@@ -9,7 +9,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.total.toLocaleString() }}</div>
+          <div class="stat-value">{{ (stats.total ?? 0).toLocaleString() }}</div>
           <div class="stat-label">题目总数</div>
         </div>
         <div class="stat-trend up">
@@ -29,10 +29,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.easyCount.toLocaleString() }}</div>
+          <div class="stat-value">{{ (stats.easyCount ?? 0).toLocaleString() }}</div>
           <div class="stat-label">简单题目</div>
         </div>
-        <div class="stat-percent">{{ stats.total > 0 ? ((stats.easyCount / stats.total) * 100).toFixed(1) : 0 }}%</div>
+        <div class="stat-percent">{{ (stats.total ?? 0) > 0 ? (((stats.easyCount ?? 0) / (stats.total ?? 1)) * 100).toFixed(1) : 0 }}%</div>
       </div>
 
       <div class="stat-card">
@@ -42,10 +42,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.mediumCount.toLocaleString() }}</div>
+          <div class="stat-value">{{ (stats.mediumCount ?? 0).toLocaleString() }}</div>
           <div class="stat-label">中等题目</div>
         </div>
-        <div class="stat-percent">{{ stats.total > 0 ? ((stats.mediumCount / stats.total) * 100).toFixed(1) : 0 }}%</div>
+        <div class="stat-percent">{{ (stats.total ?? 0) > 0 ? (((stats.mediumCount ?? 0) / (stats.total ?? 1)) * 100).toFixed(1) : 0 }}%</div>
       </div>
 
       <div class="stat-card">
@@ -55,10 +55,10 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.hardCount.toLocaleString() }}</div>
+          <div class="stat-value">{{ (stats.hardCount ?? 0).toLocaleString() }}</div>
           <div class="stat-label">困难题目</div>
         </div>
-        <div class="stat-percent">{{ stats.total > 0 ? ((stats.hardCount / stats.total) * 100).toFixed(1) : 0 }}%</div>
+        <div class="stat-percent">{{ (stats.total ?? 0) > 0 ? (((stats.hardCount ?? 0) / (stats.total ?? 1)) * 100).toFixed(1) : 0 }}%</div>
       </div>
     </div>
 
@@ -69,7 +69,7 @@
           <span class="subtitle">管理和维护所有题目</span>
         </div>
         <div class="header-actions">
-          <button class="btn-primary">
+          <button class="btn-primary" @click="openAddDialog">
             <svg viewBox="0 0 24 24" fill="none">
               <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -81,19 +81,20 @@
 
       <div class="filter-bar">
         <div class="filter-group">
-          <select class="filter-select">
-            <option>所有难度</option>
-            <option>简单</option>
-            <option>中等</option>
-            <option>困难</option>
+          <select class="filter-select" v-model="selectedDifficulty" @change="loadData(1)">
+            <option value="">所有难度</option>
+            <option value="easy">简单</option>
+            <option value="medium">中等</option>
+            <option value="hard">困难</option>
           </select>
-          <select class="filter-select">
-            <option>所有分类</option>
-            <option>言语理解</option>
-            <option>数量关系</option>
-            <option>判断推理</option>
-            <option>资料分析</option>
-            <option>常识判断</option>
+          <select class="filter-select" v-model="selectedCategory" @change="loadData(1)">
+            <option value="">所有分类</option>
+            <option value="language_understanding">言语理解</option>
+            <option value="quantity_relation">数量关系</option>
+            <option value="material_analysis">资料分析</option>
+            <option value="common_sense_judgment">常识判断</option>
+            <option value="logical_judgment">判断推理</option>
+            <option value="political_theory">政治理论</option>
           </select>
         </div>
         <div class="search-wrapper">
@@ -101,7 +102,7 @@
             <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
             <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
-          <input type="text" placeholder="搜索题目..." class="filter-search">
+          <input type="text" v-model="searchKeyword" placeholder="搜索题目..." class="filter-search" @keyup.enter="loadData(1)">
         </div>
       </div>
 
@@ -113,6 +114,7 @@
               <th>题目标题</th>
               <th>难度</th>
               <th>分类</th>
+              <th>正确答案</th>
               <th>通过率</th>
               <th>状态</th>
               <th>操作</th>
@@ -131,7 +133,10 @@
                   {{ item.difficultyText }}
                 </span>
               </td>
-              <td>{{ item.category }}</td>
+              <td>{{ item.categoryText }}</td>
+              <td>
+                <span class="answer-badge">{{ item.answer || '-' }}</span>
+              </td>
               <td>
                 <div class="pass-rate">
                   <div class="rate-bar">
@@ -166,16 +171,12 @@
                       </div>
                       <div class="dropdown-body">
                         <div class="detail-section">
-                          <div class="detail-label">题目内容</div>
-                          <div class="detail-content">{{ item.content }}</div>
-                        </div>
-                        <div class="detail-section">
                           <div class="detail-label">选项</div>
                           <div class="options-list">
-                            <div v-for="(opt, idx) in item.options" :key="idx" class="option-item" :class="{ correct: opt === item.answer }">
+                            <div v-for="(opt, idx) in item.options" :key="idx" class="option-item" :class="{ correct: String.fromCharCode(65 + idx) === item.answer }">
                               <span class="option-label">{{ String.fromCharCode(65 + idx) }}.</span>
                               <span class="option-text">{{ opt }}</span>
-                              <span v-if="opt === item.answer" class="correct-badge">正确答案</span>
+                              <span v-if="String.fromCharCode(65 + idx) === item.answer" class="correct-badge">正确答案</span>
                             </div>
                           </div>
                         </div>
@@ -186,13 +187,13 @@
                       </div>
                     </div>
                   </div>
-                  <button class="action-btn edit">
+                  <button class="action-btn edit" @click="openEditDialog(item)">
                     <svg viewBox="0 0 24 24" fill="none">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   </button>
-                  <button class="action-btn delete">
+                  <button class="action-btn delete" @click="handleDeleteQuestion(item.id)">
                     <svg viewBox="0 0 24 24" fill="none">
                       <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -206,21 +207,184 @@
       </div>
 
       <div class="pagination">
-        <button class="page-btn" disabled>上一页</button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">2</button>
-        <button class="page-btn">3</button>
-        <span class="page-dots">...</span>
-        <button class="page-btn">25</button>
-        <button class="page-btn">下一页</button>
+        <button class="page-btn" :disabled="currentPage <= 1" @click="prevPage">上一页</button>
+        <template v-for="page in visiblePages" :key="page">
+          <button 
+            v-if="typeof page === 'number'"
+            class="page-btn"
+            :class="{ active: currentPage === page }"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <span v-else class="page-dots">{{ page }}</span>
+        </template>
+        <button class="page-btn" :disabled="currentPage >= totalPages" @click="nextPage">下一页</button>
+      </div>
+
+      <div v-if="showAddDialog" class="dialog-overlay" @click.self="showAddDialog = false">
+        <div class="dialog">
+          <div class="dialog-header">
+            <h3>添加题目</h3>
+            <button class="close-btn" @click="showAddDialog = false">
+              <svg viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="dialog-body">
+            <div class="form-group">
+              <label>题目标题</label>
+              <input type="text" v-model="newQuestion.title" placeholder="请输入题目标题" class="form-input">
+            </div>
+            <div class="form-group">
+              <label>题目选项</label>
+              <div class="options-row">
+                <div class="option-input-group">
+                  <span class="option-label">A</span>
+                  <input type="text" v-model="newQuestion.options[0]" placeholder="请输入选项A内容" class="form-input option-input">
+                </div>
+                <div class="option-input-group">
+                  <span class="option-label">B</span>
+                  <input type="text" v-model="newQuestion.options[1]" placeholder="请输入选项B内容" class="form-input option-input">
+                </div>
+              </div>
+              <div class="options-row">
+                <div class="option-input-group">
+                  <span class="option-label">C</span>
+                  <input type="text" v-model="newQuestion.options[2]" placeholder="请输入选项C内容" class="form-input option-input">
+                </div>
+                <div class="option-input-group">
+                  <span class="option-label">D</span>
+                  <input type="text" v-model="newQuestion.options[3]" placeholder="请输入选项D内容" class="form-input option-input">
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>难度</label>
+                <select v-model="newQuestion.difficulty" class="form-select">
+                  <option value="">请选择难度</option>
+                  <option value="easy">简单</option>
+                  <option value="medium">中等</option>
+                  <option value="hard">困难</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>分类</label>
+                <select v-model="newQuestion.category" class="form-select">
+                  <option value="">请选择分类</option>
+                  <option value="language_understanding">言语理解</option>
+                  <option value="quantity_relation">数量关系</option>
+                  <option value="material_analysis">资料分析</option>
+                  <option value="common_sense_judgment">常识判断</option>
+                  <option value="logical_judgment">判断推理</option>
+                  <option value="political_theory">政治理论</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>正确答案</label>
+              <input type="text" v-model="newQuestion.answer" placeholder="请输入正确答案，如：A" class="form-input">
+            </div>
+            <div class="form-group">
+              <label>答案解析</label>
+              <textarea v-model="newQuestion.analysis" placeholder="请输入答案解析" class="form-textarea"></textarea>
+            </div>
+          </div>
+          <div class="dialog-footer">
+            <button class="btn-secondary" @click="showAddDialog = false">取消</button>
+            <button class="btn-primary" @click="handleAddQuestion" :disabled="addLoading">确认添加</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑题目弹窗 -->
+  <div v-if="showEditDialog" class="dialog-overlay" @click.self="showEditDialog = false">
+    <div class="dialog-container">
+      <div class="dialog-header">
+        <h3>编辑题目</h3>
+        <button class="close-btn" @click="showEditDialog = false">
+          <svg viewBox="0 0 24 24" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="dialog-body">
+        <div class="form-group">
+          <label>题目标题</label>
+          <input type="text" v-model="editQuestion.title" placeholder="请输入题目标题" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>题目选项</label>
+          <div class="options-row">
+            <div class="option-input-group">
+              <span class="option-label">A</span>
+              <input type="text" v-model="editQuestion.options[0]" placeholder="请输入选项A内容" class="form-input option-input">
+            </div>
+            <div class="option-input-group">
+              <span class="option-label">B</span>
+              <input type="text" v-model="editQuestion.options[1]" placeholder="请输入选项B内容" class="form-input option-input">
+            </div>
+          </div>
+          <div class="options-row">
+            <div class="option-input-group">
+              <span class="option-label">C</span>
+              <input type="text" v-model="editQuestion.options[2]" placeholder="请输入选项C内容" class="form-input option-input">
+            </div>
+            <div class="option-input-group">
+              <span class="option-label">D</span>
+              <input type="text" v-model="editQuestion.options[3]" placeholder="请输入选项D内容" class="form-input option-input">
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>难度</label>
+            <select v-model="editQuestion.difficulty" class="form-select">
+              <option value="">请选择难度</option>
+              <option value="easy">简单</option>
+              <option value="medium">中等</option>
+              <option value="hard">困难</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>分类</label>
+            <select v-model="editQuestion.category" class="form-select">
+              <option value="">请选择分类</option>
+              <option value="language_understanding">言语理解</option>
+              <option value="quantity_relation">数量关系</option>
+              <option value="material_analysis">资料分析</option>
+              <option value="common_sense_judgment">常识判断</option>
+              <option value="logical_judgment">判断推理</option>
+              <option value="political_theory">政治理论</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>正确答案</label>
+          <input type="text" v-model="editQuestion.answer" placeholder="请输入正确答案，如：A" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>答案解析</label>
+          <textarea v-model="editQuestion.analysis" placeholder="请输入答案解析" class="form-textarea"></textarea>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-secondary" @click="showEditDialog = false">取消</button>
+        <button class="btn-primary" @click="handleEditQuestion" :disabled="editLoading">确认修改</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { getQuestionList, getQuestionStatistics } from '@/api/question'
+import { ref, onMounted, computed } from 'vue'
+import { getQuestionList, getQuestionStatistics, addQuestion, updateQuestion, deleteQuestion } from '@/api/question'
 import { ElMessage } from 'element-plus'
 
 interface Question {
@@ -252,40 +416,184 @@ const questions = ref<Question[]>([])
 const stats = ref<Statistics>({ total: 0, easyCount: 0, mediumCount: 0, hardCount: 0, categoryList: [] })
 const loading = ref(false)
 
-const loadData = async () => {
+const currentPage = ref(1)
+const pageSize = ref(1000)
+const totalPages = ref(1)
+const totalCount = ref(0)
+const searchKeyword = ref('')
+const selectedDifficulty = ref('')
+const selectedCategory = ref('')
+const showAddDialog = ref(false)
+const showEditDialog = ref(false)
+const addLoading = ref(false)
+const editLoading = ref(false)
+const newQuestion = ref({
+  title: '',
+  options: ['', '', '', ''],
+  difficulty: '',
+  category: '',
+  answer: '',
+  analysis: ''
+})
+const editQuestion = ref({
+  id: 0,
+  title: '',
+  options: ['', '', '', ''],
+  difficulty: '',
+  category: '',
+  answer: '',
+  analysis: ''
+})
+
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = []
+  const total = totalPages.value
+  const current = currentPage.value
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, '...', total)
+    } else if (current >= total - 2) {
+      pages.push(1, '...', total - 3, total - 2, total - 1, total)
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total)
+    }
+  }
+  return pages
+})
+
+const loadData = async (page: number = 1) => {
   loading.value = true
+  currentPage.value = page
   try {
     const [questionRes, statRes] = await Promise.all([
-      getQuestionList({ page: 1, size: 100 }),
+      getQuestionList({ 
+        page, 
+        size: pageSize.value, 
+        keyword: searchKeyword.value,
+        difficulty: selectedDifficulty.value,
+        category: selectedCategory.value
+      }),
       getQuestionStatistics()
     ])
 
     if (questionRes.data.code === 200) {
-      questions.value = questionRes.data.data.list.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        difficulty: item.difficulty,
-        difficultyText: item.difficultyText,
-        category: item.category,
-        categoryText: item.categoryText,
-        passRate: item.passRate || 0,
-        status: item.status,
-        statusText: item.status === 'active' ? '已发布' : '草稿',
-        showDropdown: false,
-        content: item.content,
-        options: item.options,
-        answer: item.answer,
-        analysis: item.analysis
-      }))
+      questions.value = questionRes.data.data.list.map((item: any) => {
+        let options = ['A', 'B', 'C', 'D']
+        if (item.questionContent) {
+          try {
+            const content = typeof item.questionContent === 'string' ? JSON.parse(item.questionContent) : item.questionContent
+            if (content.option && typeof content.option === 'object') {
+              const keys = ['A', 'B', 'C', 'D']
+              options = keys.map(key => content.option[key] || key)
+            }
+          } catch (e) {
+            console.error('解析选项失败:', e)
+          }
+        }
+        return {
+          id: item.id,
+          title: item.title,
+          difficulty: item.difficulty,
+          difficultyText: item.difficultyText,
+          category: item.category,
+          categoryText: item.categoryText,
+          passRate: item.passRate || 0,
+          status: item.status,
+          statusText: item.status === 'active' ? '已发布' : '草稿',
+          showDropdown: false,
+          content: item.content || '暂无题目内容',
+          options: options,
+          answer: item.answer,
+          analysis: item.analysis
+        }
+      })
+      totalCount.value = questionRes.data.data.total || 0
+      totalPages.value = Math.ceil(totalCount.value / pageSize.value)
     }
 
     if (statRes.data.code === 200) {
       stats.value = statRes.data.data
     }
   } catch (error: any) {
-    ElMessage.error(error.message || '获取数据失败')
+    const errMsg = error.response?.data?.message || error.response?.data?.msg || error.message || '获取数据失败'
+    ElMessage.error(errMsg)
+    console.error('获取题目数据失败:', error.response?.data || error)
   } finally {
     loading.value = false
+  }
+}
+
+const openAddDialog = () => {
+  newQuestion.value = {
+    title: '',
+    options: ['', '', '', ''],
+    difficulty: '',
+    category: '',
+    answer: '',
+    analysis: ''
+  }
+  showAddDialog.value = true
+}
+
+const handleAddQuestion = async () => {
+  if (!newQuestion.value.title.trim()) {
+    ElMessage.error('请输入题目标题')
+    return
+  }
+  const hasEmptyOption = newQuestion.value.options.some(opt => !opt.trim())
+  if (hasEmptyOption) {
+    ElMessage.error('请填写所有选项内容')
+    return
+  }
+  if (!newQuestion.value.difficulty) {
+    ElMessage.error('请选择难度')
+    return
+  }
+  if (!newQuestion.value.category) {
+    ElMessage.error('请选择分类')
+    return
+  }
+  if (!newQuestion.value.answer.trim()) {
+    ElMessage.error('请输入正确答案')
+    return
+  }
+
+  const content = JSON.stringify({
+    option: {
+      A: newQuestion.value.options[0],
+      B: newQuestion.value.options[1],
+      C: newQuestion.value.options[2],
+      D: newQuestion.value.options[3]
+    }
+  })
+
+  addLoading.value = true
+  try {
+    const res = await addQuestion({
+      title: newQuestion.value.title,
+      content: content,
+      difficulty: newQuestion.value.difficulty,
+      category: newQuestion.value.category,
+      answer: newQuestion.value.answer,
+      analysis: newQuestion.value.analysis || '',
+      options: ['A', 'B', 'C', 'D']
+    })
+    if (res.data.code === 200) {
+      ElMessage.success('添加成功')
+      showAddDialog.value = false
+      loadData(1)
+    } else {
+      ElMessage.error(res.data.message || '添加失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || error.message || '添加失败')
+  } finally {
+    addLoading.value = false
   }
 }
 
@@ -299,8 +607,113 @@ const toggleDropdown = (id: number) => {
   })
 }
 
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
+    loadData(page)
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    loadData(currentPage.value - 1)
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    loadData(currentPage.value + 1)
+  }
+}
+
+const openEditDialog = (question: Question) => {
+  editQuestion.value = {
+    id: question.id,
+    title: question.title,
+    options: question.options || ['', '', '', ''],
+    difficulty: question.difficulty,
+    category: question.category,
+    answer: question.answer || '',
+    analysis: question.analysis || ''
+  }
+  showEditDialog.value = true
+}
+
+const handleEditQuestion = async () => {
+  if (!editQuestion.value.title.trim()) {
+    ElMessage.error('请输入题目标题')
+    return
+  }
+  const hasEmptyOption = editQuestion.value.options.some(opt => !opt.trim())
+  if (hasEmptyOption) {
+    ElMessage.error('请填写所有选项内容')
+    return
+  }
+  if (!editQuestion.value.difficulty) {
+    ElMessage.error('请选择难度')
+    return
+  }
+  if (!editQuestion.value.category) {
+    ElMessage.error('请选择分类')
+    return
+  }
+  if (!editQuestion.value.answer.trim()) {
+    ElMessage.error('请输入正确答案')
+    return
+  }
+
+  const content = JSON.stringify({
+    option: {
+      A: editQuestion.value.options[0],
+      B: editQuestion.value.options[1],
+      C: editQuestion.value.options[2],
+      D: editQuestion.value.options[3]
+    }
+  })
+
+  editLoading.value = true
+  try {
+    const res = await updateQuestion(editQuestion.value.id, {
+      title: editQuestion.value.title,
+      content: content,
+      difficulty: editQuestion.value.difficulty,
+      category: editQuestion.value.category,
+      answer: editQuestion.value.answer,
+      analysis: editQuestion.value.analysis || '',
+      options: ['A', 'B', 'C', 'D']
+    })
+    if (res.data.code === 200) {
+      ElMessage.success('修改成功')
+      showEditDialog.value = false
+      loadData(currentPage.value)
+    } else {
+      ElMessage.error(res.data.message || '修改失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || error.message || '修改失败')
+  } finally {
+    editLoading.value = false
+  }
+}
+
+const handleDeleteQuestion = async (id: number) => {
+  if (!confirm('确定要删除这道题目吗？')) {
+    return
+  }
+  try {
+    const res = await deleteQuestion(id)
+    if (res.data.code === 200) {
+      ElMessage.success('删除成功')
+      loadData(currentPage.value)
+    } else {
+      ElMessage.error(res.data.message || '删除失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || error.message || '删除失败')
+  }
+}
+
 onMounted(() => {
-  loadData()
+  loadData(1)
 })
 </script>
 
@@ -586,6 +999,25 @@ onMounted(() => {
   border-color: var(--primary);
 }
 
+.search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.search-btn:hover {
+  color: var(--text-primary-color);
+  background: rgba(37, 99, 235, 0.08);
+}
+
 .table-container {
   overflow-x: auto;
 }
@@ -600,7 +1032,7 @@ onMounted(() => {
 }
 
 .data-table th {
-  padding: 16px 28px;
+  padding: 12px 20px;
   text-align: left;
   font-size: 12px;
   font-weight: 600;
@@ -616,11 +1048,11 @@ onMounted(() => {
 }
 
 .data-table tbody tr:hover {
-  background: rgba(37, 99, 235, 0.05);
+  background: transparent;
 }
 
 .data-table td {
-  padding: 20px 28px;
+  padding: 12px 20px;
   font-size: 14px;
   color: var(--text-secondary);
 }
@@ -633,6 +1065,13 @@ onMounted(() => {
 .title-cell .title {
   color: var(--text-primary);
   font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 40px;
+  line-height: 1.5;
 }
 
 .difficulty-badge {
@@ -724,21 +1163,22 @@ onMounted(() => {
 }
 
 .action-btn:hover {
-  border-color: var(--border-color);
-  background: rgba(37, 99, 235, 0.08);
-  color: var(--text-primary-color);
+  border-color: var(--border-light);
+  background: transparent;
+  transform: none;
+  color: var(--text-secondary);
 }
 
 .action-btn.edit:hover {
-  border-color: rgba(96, 165, 250, 0.3);
-  background: rgba(96, 165, 250, 0.08);
-  color: var(--info);
+  border-color: var(--border-light);
+  background: transparent;
+  color: var(--text-secondary);
 }
 
 .action-btn.delete:hover {
-  border-color: rgba(248, 113, 113, 0.3);
-  background: rgba(248, 113, 113, 0.08);
-  color: var(--danger);
+  border-color: var(--border-light);
+  background: transparent;
+  color: var(--text-secondary);
 }
 
 .action-btn svg {
@@ -926,12 +1366,26 @@ onMounted(() => {
   border-radius: 12px;
 }
 
+.answer-badge {
+  display: inline-block;
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--success);
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 24px;
+  padding: 16px 24px;
   border-top: 1px solid var(--border-light);
 }
 
@@ -950,9 +1404,9 @@ onMounted(() => {
 }
 
 .page-btn:hover:not(:disabled) {
-  border-color: var(--border-color);
-  color: var(--text-primary-color);
-  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--border-light);
+  color: var(--text-secondary);
+  background: transparent;
 }
 
 .page-btn.active {
@@ -970,5 +1424,155 @@ onMounted(() => {
 .page-dots {
   color: var(--text-muted);
   padding: 0 8px;
+}
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: var(--bg-card);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dialog-header .close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.dialog-header .close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.dialog-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-light);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.options-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.options-row:last-child {
+  margin-bottom: 0;
+}
+
+.option-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option-input-group .option-label {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.option-input {
+  flex: 1;
 }
 </style>
