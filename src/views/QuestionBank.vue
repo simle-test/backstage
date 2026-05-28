@@ -1,6 +1,10 @@
 <template>
   <div class="question-bank animate-fade-in">
-    <div class="content-card">
+    <div v-if="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <span class="loading-text">加载中...</span>
+    </div>
+    <div v-else class="content-card">
       <div class="card-header">
         <div class="header-title">
           <h2>模块管理</h2>
@@ -43,7 +47,7 @@
             <span class="update-time">更新于 {{ bank.updateTime }}</span>
             <div class="bank-actions">
               <button class="action-btn-small">编辑</button>
-              <button class="action-btn-small primary">进入</button>
+              <button class="action-btn-small primary" @click="handleEnterBank(bank.id)">进入</button>
             </div>
           </div>
         </div>
@@ -54,8 +58,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getBankList } from '@/api/bank'
 import { ElMessage } from 'element-plus'
+
+const router = useRouter()
 
 interface Bank {
   id: number
@@ -79,8 +86,8 @@ const loadData = async () => {
         name: item.name,
         desc: item.desc || '',
         color: item.color || 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-        count: item.questionCount || 0,
-        updateTime: item.updatedAt || ''
+        count: item.count || 0,
+        updateTime: item.updateTime || ''
       }))
     }
   } catch (error: any) {
@@ -92,6 +99,10 @@ const loadData = async () => {
   }
 }
 
+const handleEnterBank = (bankId: number) => {
+  router.push({ path: '/app/questions', query: { bankId } })
+}
+
 onMounted(() => {
   loadData()
 })
@@ -100,6 +111,36 @@ onMounted(() => {
 <style scoped lang="css">
 .question-bank {
   width: 100%;
+  min-height: 400px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-light);
+  border-top-color: var(--gold-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  margin-top: 16px;
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 .content-card {

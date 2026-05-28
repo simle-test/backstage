@@ -383,9 +383,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { getQuestionList, getQuestionStatistics, addQuestion, updateQuestion, deleteQuestion } from '@/api/question'
 import { ElMessage } from 'element-plus'
+
+const route = useRoute()
+
+const BANK_CATEGORY_MAP: Record<number, string> = {
+  1: 'political_theory',    // 政治理论题库
+  2: 'quantity_relation',   // 数量关系题库
+  3: 'material_analysis',   // 资料分析题库
+  4: 'common_sense_judgment', // 常识判断题库
+  5: 'logical_judgment',    // 判断推理题库
+  6: 'language_understanding' // 言语理解题库
+}
 
 interface Question {
   id: number
@@ -504,7 +516,7 @@ const loadData = async (page: number = 1) => {
           categoryText: item.categoryText,
           passRate: item.passRate || 0,
           status: item.status,
-          statusText: item.status === 'active' ? '已发布' : '草稿',
+          statusText: item.statusText || (item.status === 'published' ? '已发布' : item.status === 'active' ? '上线' : '草稿'),
           showDropdown: false,
           content: item.content || '暂无题目内容',
           options: options,
@@ -712,8 +724,25 @@ const handleDeleteQuestion = async (id: number) => {
   }
 }
 
-onMounted(() => {
+const handleRouteChange = () => {
+  const bankId = route.query.bankId
+  if (bankId) {
+    const categoryId = BANK_CATEGORY_MAP[Number(bankId)]
+    if (categoryId) {
+      selectedCategory.value = categoryId
+    }
+  } else {
+    selectedCategory.value = ''
+  }
   loadData(1)
+}
+
+onMounted(() => {
+  handleRouteChange()
+})
+
+watch(() => route.query.bankId, () => {
+  handleRouteChange()
 })
 </script>
 
