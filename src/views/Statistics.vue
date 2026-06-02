@@ -187,29 +187,29 @@ const loadData = async () => {
     }
 
     if (dailyRes.data.code === 200) {
-      const maxValue = Math.max(...dailyRes.data.data.map((item: any) => item.count))
+      const maxValue = Math.max(...dailyRes.data.data.map((item: any) => item.value))
       chartData.value = dailyRes.data.data.map((item: any) => ({
-        day: item.date.slice(5),
-        value: maxValue > 0 ? (item.count / maxValue) * 100 : 0
+        day: item.day?.slice(5) || '',
+        value: maxValue > 0 ? (item.value / maxValue) * 100 : 0
       }))
     }
 
     if (categoryRes.data.code === 200) {
       difficultyData.value = {
-        easy: categoryRes.data.data.easyScore || 0,
-        medium: categoryRes.data.data.mediumScore || 0,
-        hard: categoryRes.data.data.hardScore || 0
+        easy: categoryRes.data.data.speech || 0,
+        medium: categoryRes.data.data.logic || 0,
+        hard: categoryRes.data.data.data || 0
       }
     }
 
     if (rankingRes.data.code === 200) {
       rankingData.value = rankingRes.data.data.map((item: any) => ({
-        id: item.rank,
-        name: item.username,
-        avatar: item.avatar || item.username.charAt(0),
-        color: item.avatarColor || 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-        desc: item.title || '',
-        solved: item.practiceCount
+        id: item.id,
+        name: item.name,
+        avatar: item.avatar || (item.name && item.name.charAt(0)),
+        color: item.color || 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+        desc: item.desc || '',
+        solved: item.solved
       }))
     }
   } catch (error: any) {

@@ -57,16 +57,24 @@ export const getQuestionById = (id: number) => {
   return request.get<any, any>(`/questions/${id}`)
 }
 
+export const getQuestionDetail = (id: number) => {
+  return request.get<any, any>(`/questions/${id}`)
+}
+
 export interface AddQuestionData {
   questionId?: string
   title: string
-  content: string
-  options: string[]
+  content?: string
+  options?: string[]
   answer: string
   analysis?: string
   difficulty: string
   category: string
   bankId?: number
+  questionContent?: string
+  source?: string
+  year?: number | null
+  status?: string
 }
 
 export interface UpdateQuestionData extends Partial<AddQuestionData> {}

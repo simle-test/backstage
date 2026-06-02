@@ -75,19 +75,6 @@ const menuItems = [
     path: '/app/questions',
     icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
       h('path', { 
-        d: 'M9 12h6M9 16h6M9 8h6', 
-        stroke: 'currentColor', 
-        'stroke-width': '2', 
-        'stroke-linecap': 'round' 
-      }),
-      h('rect', { x: '3', y: '3', width: '18', height: '18', rx: '2', stroke: 'currentColor', 'stroke-width': '2' })
-    ])
-  },
-  {
-    name: '模块管理',
-    path: '/app/bank',
-    icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', class: 'icon-svg' }, [
-      h('path', { 
         d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20', 
         stroke: 'currentColor', 
         'stroke-width': '2', 

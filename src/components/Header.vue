@@ -1,11 +1,7 @@
 <template>
   <header class="header">
     <div class="header-inner">
-      <div class="breadcrumb">
-        <span class="breadcrumb-item">首页</span>
-        <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-item current">{{ currentPage }}</span>
-      </div>
+      <div class="page-title">{{ currentPage }}</div>
     </div>
   </header>
 </template>
@@ -43,7 +39,7 @@ const currentPage = computed(() => {
   right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  opacity: 0.2;
+  opacity: 0.3;
 }
 
 .header-inner {
@@ -51,31 +47,14 @@ const currentPage = computed(() => {
   align-items: center;
   justify-content: flex-start;
   padding: 20px 32px;
-  height: 80px;
+  height: 70px;
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.breadcrumb-item {
-  font-size: 14px;
-  color: var(--text-muted);
-  transition: color 0.3s;
-}
-
-.breadcrumb-item.current {
-  font-size: 18px;
+.page-title {
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
   font-family: 'Noto Serif SC', serif;
-  letter-spacing: 1px;
-}
-
-.breadcrumb-separator {
-  color: var(--text-muted);
-  font-size: 14px;
+  letter-spacing: 2px;
 }
 </style>
