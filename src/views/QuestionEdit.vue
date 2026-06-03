@@ -61,6 +61,13 @@
             <textarea v-model="form.title" class="form-textarea" placeholder="请输入题目内容" rows="4"></textarea>
           </div>
 
+          <div v-if="form.category === 'material_analysis' && form.imageUrl" class="form-group">
+            <label class="form-label">题目图片</label>
+            <div class="material-image-container">
+              <img :src="form.imageUrl" alt="题目图片" class="material-image" />
+            </div>
+          </div>
+
           <div v-if="form.category === 'material_analysis' && form.materialImageUrl" class="form-group">
             <label class="form-label">材料图片</label>
             <div class="material-image-container">
@@ -179,6 +186,7 @@ const form = ref({
   source: '',
   year: null as number | null,
   status: 'active',
+  imageUrl: '',
   materialImageUrl: '',
   materialTitle: '',
   materialContent: ''
@@ -224,6 +232,7 @@ const loadQuestionDetail = async () => {
             source: data.source || '',
             year: data.year || null,
             status: data.status || 'active',
+            imageUrl: data.imageUrl || '',
             materialImageUrl: data.materialImageUrl || '',
             materialTitle: data.materialTitle || '',
             materialContent: data.materialContent || ''
