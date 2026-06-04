@@ -61,21 +61,12 @@
             <textarea v-model="form.title" class="form-textarea" placeholder="请输入题目内容" rows="4"></textarea>
           </div>
 
-          <div v-if="form.category === 'material_analysis' && form.imageUrl" class="form-group">
-            <label class="form-label">题目图片</label>
-            <div class="material-image-container">
-              <img :src="form.imageUrl" alt="题目图片" class="material-image" />
-            </div>
-          </div>
-
-          <div v-if="form.category === 'material_analysis' && form.materialImageUrl" class="form-group">
-            <label class="form-label">材料图片</label>
-            <div class="material-image-container">
-              <img :src="form.materialImageUrl" alt="材料图片" class="material-image" />
-              <div class="material-info">
-                <p v-if="form.materialTitle" class="material-title">{{ form.materialTitle }}</p>
-                <p v-if="form.materialContent" class="material-content">{{ form.materialContent }}</p>
-              </div>
+          <div v-if="form.category === 'material_analysis'" class="form-group">
+            <label class="form-label">材料内容</label>
+            <div class="material-content-container">
+              <img v-if="form.imageUrl" :src="form.imageUrl" alt="题目图片" class="material-image" />
+              <img v-if="form.materialImageUrl" :src="form.materialImageUrl" alt="材料图片" class="material-image" />
+              <textarea v-model="form.materialContent" class="form-textarea material-textarea" placeholder="请输入材料内容（主题干）" rows="6"></textarea>
             </div>
           </div>
         </div>
@@ -128,10 +119,6 @@
                 </option>
               </select>
             </div>
-            <div class="form-group">
-              <label class="form-label">题目来源</label>
-              <input type="text" v-model="form.source" class="form-input" placeholder="请输入题目来源" />
-            </div>
           </div>
 
           <div class="form-group">
@@ -143,18 +130,12 @@
         <div class="form-section">
           <h3 class="section-title">其他信息</h3>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">年份</label>
-              <input type="number" v-model="form.year" class="form-input" placeholder="请输入年份" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">题目状态</label>
-              <select v-model="form.status" class="form-select">
-                <option value="active">启用</option>
-                <option value="inactive">禁用</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label class="form-label">题目状态</label>
+            <select v-model="form.status" class="form-select">
+              <option value="active">启用</option>
+              <option value="inactive">禁用</option>
+            </select>
           </div>
         </div>
       </div>
@@ -219,8 +200,8 @@ const loadQuestionDetail = async () => {
     loading.value = true
     try {
       const res = await getQuestionDetail(id as number)
-      if (res.data.code === 200) {
-          const data = res.data.data
+      if (res.code === 200) {
+          const data = res.data
           form.value = {
             id: data.id,
             title: data.title || '',
@@ -235,7 +216,7 @@ const loadQuestionDetail = async () => {
             imageUrl: data.imageUrl || '',
             materialImageUrl: data.materialImageUrl || '',
             materialTitle: data.materialTitle || '',
-            materialContent: data.materialContent || ''
+            materialContent: data.content || data.materialContent || ''
           }
       }
     } catch (error: any) {
@@ -313,11 +294,11 @@ const handleSave = async () => {
       res = await addQuestion(params)
     }
 
-    if (res.data.code === 200) {
+    if (res.code === 200) {
       ElMessage.success(isEdit.value ? '修改成功' : '添加成功')
       goBack()
     } else {
-      ElMessage.error(res.data.message || (isEdit.value ? '修改失败' : '添加失败'))
+      ElMessage.error(res.message || (isEdit.value ? '修改失败' : '添加失败'))
     }
   } catch (error: any) {
     const errMsg = error.response?.data?.message || error.message || (isEdit.value ? '修改失败' : '添加失败')
@@ -639,6 +620,32 @@ onMounted(() => {
 .btn-add-option svg {
   width: 16px;
   height: 16px;
+}
+
+.material-content-container {
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.material-content-container .material-image {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.material-textarea {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .material-image-container {

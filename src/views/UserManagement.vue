@@ -404,8 +404,8 @@ const handleEdit = async (user: User) => {
   
   try {
     const res = await getUserById(user.id)
-    if (res.data.code === 200) {
-      const detail = res.data.data
+    if (res.code === 200) {
+      const detail = res.data
       editForm.password = detail.password || ''
       editForm.wechatOpenid = detail.wechatOpenid || ''
     }
@@ -453,12 +453,12 @@ const handleSave = async () => {
       ? await updateUser(editForm.id, data)
       : await addUser(data)
     
-    if (res.data.code === 200) {
+    if (res.code === 200) {
       ElMessage.success(isEdit.value ? '更新成功' : '添加成功')
       handleCloseDialog()
       loadData()
     } else {
-      ElMessage.error(res.data.message || '操作失败')
+      ElMessage.error(res.message || '操作失败')
     }
   } catch (error: any) {
     const errMsg = error.response?.data?.message || error.message || '操作失败'
@@ -480,11 +480,11 @@ const handleDelete = (user: User) => {
   ).then(async () => {
     try {
       const res = await deleteUser(user.id)
-      if (res.data.code === 200) {
+      if (res.code === 200) {
         ElMessage.success('删除成功')
         loadData()
       } else {
-        ElMessage.error(res.data.message || '删除失败')
+        ElMessage.error(res.message || '删除失败')
       }
     } catch (error: any) {
       const errMsg = error.response?.data?.message || '删除失败'

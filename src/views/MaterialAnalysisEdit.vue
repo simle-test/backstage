@@ -31,26 +31,14 @@
       <div class="form-container">
         <!-- 材料信息 -->
         <div class="form-section">
-          <h3 class="section-title">材料信息</h3>
-          
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">来源</label>
-              <input type="text" v-model="form.source" class="form-input" placeholder="请输入题目来源" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">年份</label>
-              <input type="number" v-model="form.year" class="form-input" placeholder="请输入年份" />
+          <!-- 图片显示区域 -->
+          <div v-if="form.imageUrl" class="form-group">
+            <div class="material-image-container">
+              <img :src="getImageUrl(form.imageUrl)" alt="题目图片" class="material-image" />
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">材料标题</label>
-            <input type="text" v-model="form.materialTitle" class="form-input" placeholder="请输入材料标题" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">材料内容</label>
             <textarea v-model="form.materialContent" class="form-textarea-large" placeholder="请输入材料内容（主题干）" rows="8"></textarea>
           </div>
         </div>
@@ -114,19 +102,23 @@
                 <div class="options-grid">
                   <div class="option-item">
                     <span class="option-label">A</span>
-                    <input type="text" v-model="problem.optionA" class="form-input" placeholder="请输入选项A" />
+                    <img v-if="isImageOption(problem.optionA)" :src="getImageUrl(problem.optionA)" class="option-image" alt="选项A" />
+                    <input v-else type="text" v-model="problem.optionA" class="form-input" placeholder="请输入选项A" />
                   </div>
                   <div class="option-item">
                     <span class="option-label">B</span>
-                    <input type="text" v-model="problem.optionB" class="form-input" placeholder="请输入选项B" />
+                    <img v-if="isImageOption(problem.optionB)" :src="getImageUrl(problem.optionB)" class="option-image" alt="选项B" />
+                    <input v-else type="text" v-model="problem.optionB" class="form-input" placeholder="请输入选项B" />
                   </div>
                   <div class="option-item">
                     <span class="option-label">C</span>
-                    <input type="text" v-model="problem.optionC" class="form-input" placeholder="请输入选项C" />
+                    <img v-if="isImageOption(problem.optionC)" :src="getImageUrl(problem.optionC)" class="option-image" alt="选项C" />
+                    <input v-else type="text" v-model="problem.optionC" class="form-input" placeholder="请输入选项C" />
                   </div>
                   <div class="option-item">
                     <span class="option-label">D</span>
-                    <input type="text" v-model="problem.optionD" class="form-input" placeholder="请输入选项D" />
+                    <img v-if="isImageOption(problem.optionD)" :src="getImageUrl(problem.optionD)" class="option-image" alt="选项D" />
+                    <input v-else type="text" v-model="problem.optionD" class="form-input" placeholder="请输入选项D" />
                   </div>
                 </div>
 
@@ -177,7 +169,7 @@ const loading = ref(false)
 const saving = ref(false)
 
 interface MaterialProblem {
-  id: number | null
+  id?: number
   questionId: string
   questionText: string
   optionA: string
@@ -193,16 +185,13 @@ interface MaterialProblem {
 
 const form = ref({
   materialId: null as number | null,
-  materialTitle: '',
   materialContent: '',
-  source: '',
-  year: null as number | null,
+  imageUrl: '',
   problems: [] as MaterialProblem[]
 })
 
 const addProblem = () => {
   form.value.problems.push({
-    id: null,
     questionId: '',
     questionText: '',
     optionA: '',
@@ -243,6 +232,31 @@ const moveProblem = (index: number, direction: number) => {
   }
 }
 
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath) return ''
+  // 如果路径已经是完整URL，直接返回
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath
+  }
+  // 移除路径开头的 ./
+  if (imagePath.startsWith('./')) {
+    imagePath = imagePath.substring(2)
+  }
+  // 使用域名加目录的方式读取图片
+  return `https://www.civilservant.cloud/${imagePath}`
+}
+
+const isImageOption = (optionValue: string) => {
+  if (!optionValue) return false
+  // 判断选项值是否是图片路径
+  return optionValue.startsWith('./question_img/') ||
+         optionValue.endsWith('.jpg') ||
+         optionValue.endsWith('.jpeg') ||
+         optionValue.endsWith('.png') ||
+         optionValue.endsWith('.gif') ||
+         optionValue.endsWith('.webp')
+}
+
 const loadMaterialAnalysis = async () => {
   const materialId = route.query.materialId
   if (materialId) {
@@ -252,10 +266,8 @@ const loadMaterialAnalysis = async () => {
       const detail = res.data
       form.value = {
         materialId: detail.materialId,
-        materialTitle: detail.materialTitle || '',
         materialContent: detail.materialContent || '',
-        source: detail.source || '',
-        year: detail.year || null,
+        imageUrl: detail.imageUrl || '',
         problems: detail.problems ? detail.problems.map((p: any) => ({
           id: p.id,
           questionId: p.questionId || '',
@@ -307,15 +319,15 @@ const handleSave = async () => {
   saving.value = true
   try {
     const params = {
-      materialId: form.value.materialId,
-      materialTitle: form.value.materialTitle,
+      materialId: form.value.materialId || undefined,
       materialContent: form.value.materialContent,
-      source: form.value.source,
-      year: form.value.year,
-      problems: form.value.problems
+      problems: form.value.problems.map(p => ({
+        ...p,
+        id: p.id || undefined
+      }))
     }
 
-    await saveMaterialAnalysis(params)
+    await saveMaterialAnalysis(params as any)
     ElMessage.success('保存成功')
     goBack()
   } catch (error: any) {
@@ -610,6 +622,56 @@ onMounted(() => {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+/* 空内容提示样式 */
+.empty-content-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  border: 1px dashed var(--border-light);
+  border-radius: 12px;
+  background: rgba(245, 108, 108, 0.05);
+  margin-bottom: 12px;
+}
+
+.hint-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.hint-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 0 4px 0;
+}
+
+.hint-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* 图片显示样式 */
+.material-image-container {
+  margin-top: 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  display: inline-block;
+}
+
+.material-image {
+  width: 25%;
+  max-width: 25%;
+  height: auto;
+  display: block;
+}
+
 .problems-list {
   display: flex;
   flex-direction: column;
@@ -707,5 +769,12 @@ onMounted(() => {
 
 .option-item .form-input {
   flex: 1;
+}
+
+.option-image {
+  max-width: 120px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
 }
 </style>

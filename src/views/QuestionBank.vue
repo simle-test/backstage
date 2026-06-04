@@ -157,8 +157,8 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await getBankList()
-    if (res.data.code === 200) {
-      banks.value = res.data.data.map((item: any) => ({
+    if (res.code === 200) {
+      banks.value = res.data.map((item: any) => ({
         id: item.id,
         name: item.name,
         desc: item.desc || '',
@@ -225,12 +225,12 @@ const handleSave = async () => {
       color: editForm.color
     })
     
-    if (res.data.code === 200) {
+    if (res.code === 200) {
       ElMessage.success('保存成功')
       editDialogVisible.value = false
       loadData()
     } else {
-      ElMessage.error(res.data.message || '保存失败')
+      ElMessage.error(res.message || '保存失败')
     }
   } catch (error: any) {
     const errMsg = error.response?.data?.message || error.message || '保存失败'

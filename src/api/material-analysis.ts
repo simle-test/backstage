@@ -18,10 +18,8 @@ export interface MaterialProblemItem {
 
 export interface MaterialAnalysisDetailResponse {
   materialId?: number
-  materialTitle: string
   materialContent: string
-  source?: string
-  year?: number | null
+  imageUrl?: string
   categoryId?: string
   categoryName?: string
   problems: MaterialProblemItem[]
@@ -30,10 +28,7 @@ export interface MaterialAnalysisDetailResponse {
 
 export interface SaveMaterialAnalysisRequest {
   materialId?: number
-  materialTitle: string
   materialContent: string
-  source?: string
-  year?: number | null
   problems: MaterialProblemItem[]
 }
 

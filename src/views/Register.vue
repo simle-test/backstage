@@ -201,11 +201,11 @@ const handleRegister = async () => {
       phone: form.phone,
       password: form.password
     })
-    if (res.data.code === 200) {
+    if (res.code === 200) {
       ElMessage.success('注册成功，请登录')
       router.push('/login')
     } else {
-      ElMessage.error(res.data.message || '注册失败')
+      ElMessage.error(res.message || '注册失败')
     }
   } catch (error: any) {
     const errMsg = error.response?.data?.message || error.response?.data?.msg || error.message || '注册失败'

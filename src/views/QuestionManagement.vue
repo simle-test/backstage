@@ -70,7 +70,12 @@
             <tr v-for="question in questions" :key="question.id" class="table-row">
               <td class="question-id">{{ question.questionId || question.id }}</td>
               <td class="question-content">
-                <div class="content-preview">{{ question.title || question.content || '暂无内容' }}</div>
+                <div v-if="question.imageUrl" class="image-preview">
+                  <img :src="question.imageUrl" alt="题目图片" class="preview-image" />
+                </div>
+                <div class="content-preview" v-if="question.title || question.content">
+                  {{ question.title || question.content }}
+                </div>
               </td>
               <td class="question-category">
                 <span class="category-tag">{{ getCategoryText(question.category) }}</span>
@@ -163,11 +168,11 @@ const loadQuestionList = async () => {
     }
     
     const res = await getQuestionList(params)
-    if (res.data.code === 200) {
-      questions.value = res.data.data.list || []
-      total.value = res.data.data.total || 0
+    if (res.code === 200) {
+      questions.value = res.data.list || []
+      total.value = res.data.total || 0
     } else {
-      ElMessage.error(res.data.message || '获取题目列表失败')
+      ElMessage.error(res.message || '获取题目列表失败')
     }
   } catch (error: any) {
     console.error('获取题目列表失败:', error)
@@ -183,8 +188,8 @@ const loadBankName = async () => {
   if (bankId) {
     try {
       const res = await getBankList()
-      if (res.data.code === 200) {
-        const banks = res.data.data || []
+      if (res.code === 200) {
+        const banks = res.data || []
         const bank = banks.find((b: any) => b.id === bankId)
         if (bank) {
           currentBankName.value = bank.name || '题目列表'
@@ -548,6 +553,20 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: var(--primary);
+}
+
+.image-preview {
+  margin-bottom: 8px;
+  max-width: 200px;
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
 }
 
 .content-preview {
