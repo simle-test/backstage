@@ -263,7 +263,7 @@ const loadMaterialAnalysis = async () => {
     loading.value = true
     try {
       const res = await getMaterialAnalysisDetail(Number(materialId))
-      const detail = res.data
+      const detail = res.data.data
       form.value = {
         materialId: detail.materialId,
         materialContent: detail.materialContent || '',
