@@ -90,3 +90,39 @@ export const updateQuestion = (id: number, data: UpdateQuestionData) => {
 export const deleteQuestion = (id: number) => {
   return request.delete<any, any>(`/questions/${id}`)
 }
+
+// 批量导入相关接口
+export interface BatchImportPreviewResponse {
+  success: boolean
+  message: string
+  questions: Array<{
+    number: string
+    typeName: string
+    content: string
+    options: string[]
+    correctAnswer: string
+    category: string
+  }>
+  statistics: {
+    total: number
+    singleChoice: number
+    multipleChoice: number
+    fillBlank: number
+    trueFalse: number
+    essay: number
+    parsed: number
+  }
+  errors: string[]
+}
+
+export const batchImportPreview = (formData: FormData) => {
+  return request.post<any, any>('/questions/batch-import/preview', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export const getImportCategories = () => {
+  return request.get<any, any>('/questions/batch-import/categories')
+}

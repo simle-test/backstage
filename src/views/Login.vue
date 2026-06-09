@@ -114,13 +114,13 @@ const handleLogin = async () => {
       username: form.username,
       password: form.password
     })
-    if (res.code === 200) {
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.user))
+    if (res.data.code === 200) {
+      localStorage.setItem('token', res.data.data.token)
+      localStorage.setItem('user', JSON.stringify(res.data.data.user))
       ElMessage.success('登录成功')
       router.push('/app/questions')
     } else {
-      ElMessage.error(res.message || '登录失败')
+      ElMessage.error(res.data.message || '登录失败')
     }
   } catch (error: any) {
     ElMessage.error(error.message || '登录失败，请检查网络')

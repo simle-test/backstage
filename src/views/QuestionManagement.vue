@@ -149,11 +149,11 @@ const loadQuestionList = async () => {
   try {
     const params: any = {
       page: currentPage.value,
-      size: pageSize.value
+      size: pageSize.value,
+      difficulty: difficultyFilter.value || ''
     }
     
     if (searchKeyword.value) params.keyword = searchKeyword.value
-    if (difficultyFilter.value) params.difficulty = difficultyFilter.value
     
     const urlCategoryId = route.query.categoryId as string
     if (urlCategoryId && !categoryFilter.value) {
@@ -168,11 +168,11 @@ const loadQuestionList = async () => {
     }
     
     const res = await getQuestionList(params)
-    if (res.code === 200) {
-      questions.value = res.data.list || []
-      total.value = res.data.total || 0
+    if (res.data.code === 200) {
+      questions.value = res.data.data.list || []
+      total.value = res.data.data.total || 0
     } else {
-      ElMessage.error(res.message || '获取题目列表失败')
+      ElMessage.error(res.data.message || '获取题目列表失败')
     }
   } catch (error: any) {
     console.error('获取题目列表失败:', error)
@@ -188,8 +188,8 @@ const loadBankName = async () => {
   if (bankId) {
     try {
       const res = await getBankList()
-      if (res.code === 200) {
-        const banks = res.data || []
+      if (res.data.code === 200) {
+        const banks = res.data.data || []
         const bank = banks.find((b: any) => b.id === bankId)
         if (bank) {
           currentBankName.value = bank.name || '题目列表'

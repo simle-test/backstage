@@ -200,8 +200,8 @@ const loadQuestionDetail = async () => {
     loading.value = true
     try {
       const res = await getQuestionDetail(id as number)
-      if (res.code === 200) {
-          const data = res.data
+      if (res.data.code === 200) {
+          const data = res.data.data
           form.value = {
             id: data.id,
             title: data.title || '',
@@ -294,11 +294,11 @@ const handleSave = async () => {
       res = await addQuestion(params)
     }
 
-    if (res.code === 200) {
+    if (res.data.code === 200) {
       ElMessage.success(isEdit.value ? '修改成功' : '添加成功')
       goBack()
     } else {
-      ElMessage.error(res.message || (isEdit.value ? '修改失败' : '添加失败'))
+      ElMessage.error(res.data.message || (isEdit.value ? '修改失败' : '添加失败'))
     }
   } catch (error: any) {
     const errMsg = error.response?.data?.message || error.message || (isEdit.value ? '修改失败' : '添加失败')

@@ -22,16 +22,36 @@
       </div>
 
       <nav class="sidebar-nav">
-        <router-link 
-          v-for="item in menuItems" 
-          :key="item.path" 
-          :to="item.path" 
-          class="nav-item"
-          active-class="active"
-        >
-          <span class="nav-text">{{ item.name }}</span>
-          <component :is="item.icon" class="nav-icon"/>
-        </router-link>
+        <div v-for="item in menuItems" :key="item.path" class="nav-group">
+          <div 
+            class="nav-item"
+            :class="{ 
+              'has-children': item.children && item.children.length > 0,
+              'active': $route.path === item.path || $route.path.startsWith(item.path + '/')
+            }"
+            @click="item.children && item.children.length > 0 ? toggleMenu(item.path) : router.push(item.path)"
+          >
+            <span class="nav-text">{{ item.name }}</span>
+            <div class="nav-icon-wrapper">
+              <component :is="item.icon" class="nav-icon"/>
+              <svg v-if="item.children && item.children.length > 0" viewBox="0 0 24 24" fill="none" class="arrow-icon" :class="{ expanded: expandedMenu === item.path }">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          
+          <div v-if="item.children && item.children.length > 0" :class="['submenu', { expanded: expandedMenu === item.path }]">
+            <router-link 
+              v-for="child in item.children" 
+              :key="child.path"
+              :to="child.path"
+              class="submenu-item"
+              active-class="active"
+            >
+              <span class="submenu-text">{{ child.name }}</span>
+            </router-link>
+          </div>
+        </div>
       </nav>
 
       <div class="sidebar-footer">
@@ -58,10 +78,15 @@
 </template>
 
 <script setup lang="ts">
-import { h } from 'vue'
+import { ref, h } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const expandedMenu = ref('')
+
+const toggleMenu = (path: string) => {
+  expandedMenu.value = expandedMenu.value === path ? '' : path
+}
 
 const handleLogout = () => {
   if (confirm('确定要退出登录吗？')) {
@@ -86,7 +111,11 @@ const menuItems = [
         'stroke-width': '2', 
         'stroke-linecap': 'round' 
       })
-    ])
+    ]),
+    children: [
+      { name: '模块列表', path: '/app/questions' },
+      { name: '批量导入', path: '/app/questions/batch-import' }
+    ]
   },
   {
     name: '用户管理',
@@ -245,6 +274,7 @@ const menuItems = [
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .nav-item::before {
@@ -285,11 +315,60 @@ const menuItems = [
   letter-spacing: 0.3px;
 }
 
+.nav-icon-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .nav-icon {
   width: 45px;
   height: 45px;
   flex-shrink: 0;
-  margin-left: 8px;
+}
+
+.arrow-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  transition: transform 0.3s;
+}
+
+.arrow-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  padding-left: 12px;
+}
+
+.submenu.expanded {
+  max-height: 100px;
+}
+
+.submenu-item {
+  display: block;
+  padding: 10px 16px 10px 24px;
+  margin: 2px 0;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.25s;
+}
+
+.submenu-item:hover {
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--text-primary-color);
+}
+
+.submenu-item.active {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary);
+  font-weight: 500;
 }
 
 .icon-svg {

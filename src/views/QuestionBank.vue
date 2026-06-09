@@ -11,7 +11,7 @@
           <span class="subtitle">管理行测五大模块题目</span>
         </div>
         <div class="header-actions">
-          <button class="btn-primary">
+          <button class="btn-primary" @click="handleCreate">
             <svg viewBox="0 0 24 24" fill="none">
               <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -46,6 +46,7 @@
           <div class="bank-footer">
             <span class="update-time">更新于 {{ bank.updateTime }}</span>
             <div class="bank-actions">
+              <button class="action-btn-small delete" @click="handleDelete(bank)">删除</button>
               <button class="action-btn-small" @click="handleEdit(bank)">编辑</button>
               <button class="action-btn-small primary" @click="handleEnterBank(bank.id)">进入</button>
             </div>
@@ -57,7 +58,7 @@
     <div v-if="editDialogVisible" class="dialog-overlay" @click.self="handleCloseDialog">
       <div class="edit-dialog">
         <div class="dialog-header">
-          <h3>编辑模块</h3>
+          <h3>{{ isEdit ? '编辑模块' : '新建模块' }}</h3>
           <button class="dialog-close" @click="handleCloseDialog">
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -116,8 +117,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getBankList, updateBank } from '@/api/bank'
-import { ElMessage } from 'element-plus'
+import { getBankList, updateBank, createBank, deleteBank } from '@/api/bank'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 
@@ -134,6 +135,7 @@ const banks = ref<Bank[]>([])
 const loading = ref(true)
 const editDialogVisible = ref(false)
 const saving = ref(false)
+const isEdit = ref(false)
 
 const editForm = reactive({
   id: 0,
@@ -157,8 +159,8 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await getBankList()
-    if (res.code === 200) {
-      banks.value = res.data.map((item: any) => ({
+    if (res.data.code === 200) {
+      banks.value = res.data.data.map((item: any) => ({
         id: item.id,
         name: item.name,
         desc: item.desc || '',
@@ -200,6 +202,7 @@ const getCategoryIdByBankName = (bankName: string): string | null => {
 }
 
 const handleEdit = (bank: Bank) => {
+  isEdit.value = true
   editForm.id = bank.id
   editForm.name = bank.name
   editForm.desc = bank.desc
@@ -207,8 +210,48 @@ const handleEdit = (bank: Bank) => {
   editDialogVisible.value = true
 }
 
+const handleCreate = () => {
+  isEdit.value = false
+  editForm.id = 0
+  editForm.name = ''
+  editForm.desc = ''
+  editForm.color = '#409EFF'
+  editDialogVisible.value = true
+}
+
 const handleCloseDialog = () => {
   editDialogVisible.value = false
+  editForm.id = 0
+  editForm.name = ''
+  editForm.desc = ''
+  editForm.color = ''
+}
+
+const handleDelete = (bank: Bank) => {
+  ElMessageBox.confirm(
+    `确定要删除模块「${bank.name}」吗？此操作无法撤销。`,
+    '确认删除',
+    {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      const res = await deleteBank(bank.id)
+      if (res.data.code === 200) {
+        ElMessage.success('删除成功')
+        loadData()
+      } else {
+        ElMessage.error(res.data.message || '删除失败')
+      }
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.message || '删除失败'
+      ElMessage.error(errMsg)
+    }
+  }).catch(() => {
+    // 用户取消删除
+  })
 }
 
 const handleSave = async () => {
@@ -219,21 +262,25 @@ const handleSave = async () => {
   
   saving.value = true
   try {
-    const res = await updateBank(editForm.id, {
+    const data = {
       name: editForm.name,
       desc: editForm.desc,
       color: editForm.color
-    })
+    }
     
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
+    const res = isEdit.value 
+      ? await updateBank(editForm.id, data)
+      : await createBank(data)
+    
+    if (res.data.code === 200) {
+      ElMessage.success(isEdit.value ? '保存成功' : '新建成功')
       editDialogVisible.value = false
       loadData()
     } else {
-      ElMessage.error(res.message || '保存失败')
+      ElMessage.error(res.data.message || (isEdit.value ? '保存失败' : '新建失败'))
     }
   } catch (error: any) {
-    const errMsg = error.response?.data?.message || error.message || '保存失败'
+    const errMsg = error.response?.data?.message || error.message || (isEdit.value ? '保存失败' : '新建失败')
     ElMessage.error(errMsg)
   } finally {
     saving.value = false
@@ -472,25 +519,33 @@ onMounted(() => {
 
 .bank-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  align-items: center;
 }
 
 .action-btn-small {
-  padding: 8px 16px;
+  padding: 9px 20px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.25s ease;
   border: 1px solid var(--border-light);
-  background: transparent;
+  background: #ffffff;
   color: var(--text-secondary);
+  min-width: 64px;
+  text-align: center;
 }
 
 .action-btn-small:hover {
   border-color: var(--border-color);
-  background: rgba(37, 99, 235, 0.08);
+  background: rgba(37, 99, 235, 0.05);
   color: var(--text-primary-color);
+  transform: translateY(-1px);
+}
+
+.action-btn-small:active {
+  transform: translateY(0);
 }
 
 .action-btn-small.primary {
@@ -501,7 +556,20 @@ onMounted(() => {
 }
 
 .action-btn-small.primary:hover {
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  background: linear-gradient(135deg, #4f9dff 0%, #367cf0 100%);
+}
+
+.action-btn-small.delete {
+  background: rgba(245, 108, 108, 0.08);
+  border-color: rgba(245, 108, 108, 0.25);
+  color: #e85d5d;
+}
+
+.action-btn-small.delete:hover {
+  background: rgba(245, 108, 108, 0.15);
+  border-color: rgba(245, 108, 108, 0.4);
+  color: #dc4c4c;
 }
 
 .dialog-overlay {

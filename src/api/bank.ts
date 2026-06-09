@@ -37,3 +37,7 @@ export const createBank = (data: CreateBankData) => {
 export const updateBank = (id: number, data: UpdateBankData) => {
   return request.put<any, any>(`/banks/${id}`, data)
 }
+
+export const deleteBank = (id: number) => {
+  return request.delete<any, any>(`/banks/${id}`)
+}
