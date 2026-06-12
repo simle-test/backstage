@@ -68,13 +68,41 @@
           </thead>
           <tbody>
             <tr v-for="question in questions" :key="question.id" class="table-row">
-              <td class="question-id">{{ question.questionId || question.id }}</td>
+              <td class="question-id">
+                {{ question.questionId || question.id }}
+                <button class="debug-btn" @click="debugQuestionImages(question)">调试</button>
+              </td>
               <td class="question-content">
-                <div v-if="question.imageUrl" class="image-preview">
-                  <img :src="question.imageUrl" alt="题目图片" class="preview-image" />
+                <div v-if="getQuestionImage(question)" class="image-preview">
+                  <img 
+                    :src="getQuestionImage(question)" 
+                    alt="题目图片" 
+                    class="preview-image"
+                    @error="(e: Event) => handleImageError(e, '题目图片', e.target || undefined)"
+                  />
                 </div>
-                <div class="content-preview" v-if="question.title || question.content">
-                  {{ question.title || question.content }}
+                <div class="content-preview" v-if="question.category !== 'material_analysis' && question.title">
+                  {{ question.title }}
+                </div>
+                <div class="content-preview" v-if="question.category === 'material_analysis' && question.content">
+                  {{ question.content }}
+                </div>
+                <div class="content-preview" v-if="question.category !== 'material_analysis' && !question.title && question.content">
+                  {{ question.content }}
+                </div>
+                <div v-if="getQuestionOptionsWithImages(question.questionContent).length" class="options-preview">
+                  <div v-for="opt in getQuestionOptionsWithImages(question.questionContent)" :key="opt.key" class="option-item">
+                    <span class="option-key">{{ opt.key }}.</span>
+                    <span v-if="opt.isImage" class="option-value">
+                      <img 
+                        :src="opt.imageUrl" 
+                        :alt="`选项${opt.key}`" 
+                        class="option-image"
+                        @error="handleImageError($event, `选项${opt.key}`)"
+                      />
+                    </span>
+                    <span v-else class="option-value">{{ opt.value }}</span>
+                  </div>
                 </div>
               </td>
               <td class="question-category">
@@ -127,6 +155,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { getQuestionList, deleteQuestion } from '@/api/question'
 import { getBankList } from '@/api/bank'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getFullImageUrl, getQuestionImageUrl, getQuestionOptionsWithImages } from '@/utils/image'
 
 const router = useRouter()
 const route = useRoute()
@@ -312,6 +341,42 @@ const formatTime = (time: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const getQuestionImage = (question: any): string => {
+  if (question.imageUrl) {
+    return getFullImageUrl(question.imageUrl)
+  }
+  const contentImage = getQuestionImageUrl(question.questionContent)
+  if (contentImage) {
+    return contentImage
+  }
+  return ''
+}
+
+const handleImageError = (event: Event, imageType: string, target?: EventTarget) => {
+  const img = target as HTMLImageElement || (event.target as HTMLImageElement)
+  console.error(`图片加载失败 - ${imageType}:`, img.src)
+  img.style.display = 'none'
+  const placeholder = document.createElement('div')
+  placeholder.className = 'image-placeholder'
+  placeholder.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <span>图片加载失败</span>
+  `
+  img.parentElement?.appendChild(placeholder)
+}
+
+const debugQuestionImages = (question: any) => {
+  console.log('题目ID:', question.id)
+  console.log('imageUrl字段:', question.imageUrl)
+  console.log('questionContent:', question.questionContent)
+  console.log('生成的题目图片URL:', getQuestionImage(question))
+  console.log('选项数据:', getQuestionOptionsWithImages(question.questionContent))
 }
 
 onMounted(() => {
@@ -553,6 +618,24 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debug-btn {
+  padding: 2px 8px;
+  font-size: 11px;
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.debug-btn:hover {
+  background: rgba(251, 191, 36, 0.2);
 }
 
 .image-preview {
@@ -579,6 +662,58 @@ onMounted(() => {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.options-preview {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.option-key {
+  font-weight: 600;
+  color: var(--primary);
+  min-width: 20px;
+}
+
+.option-value {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.option-image {
+  max-width: 100px;
+  max-height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
+}
+
+.image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.image-placeholder svg {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
 }
 
 .category-tag {

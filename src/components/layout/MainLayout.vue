@@ -5,9 +5,7 @@
       <Header />
       <div class="page-content">
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
+          <component :is="Component" />
         </router-view>
       </div>
     </div>
@@ -22,10 +20,11 @@ import Header from '../Header.vue'
 <style scoped lang="css">
 .main-layout {
   display: flex;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background: var(--bg-primary);
   position: relative;
+  overflow: hidden;
 }
 
 .main-layout::before {
@@ -43,6 +42,7 @@ import Header from '../Header.vue'
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh;
   overflow: hidden;
   position: relative;
 }
@@ -50,8 +50,26 @@ import Header from '../Header.vue'
 .page-content {
   flex: 1;
   overflow-y: auto;
-  padding: 32px;
+  padding: 24px;
   position: relative;
+  min-height: 0;
+}
+
+.page-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.page-content::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+.page-content::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.3);
+  border-radius: 4px;
+}
+
+.page-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.5);
 }
 
 .fade-enter-active,

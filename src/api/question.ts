@@ -31,6 +31,7 @@ export interface QuestionStatistics {
   easyCount: number
   mediumCount: number
   hardCount: number
+  todayCount: number
   categoryList: {
     category: string
     categoryText: string
@@ -125,4 +126,17 @@ export const batchImportPreview = (formData: FormData) => {
 
 export const getImportCategories = () => {
   return request.get<any, any>('/questions/batch-import/categories')
+}
+
+// 近期新增题目相关接口
+export const getRecentQuestions = (days: number, page: number, size: number, category?: string) => {
+  return request.get<any, any>('/questions/recent', {
+    params: { days, page, size, category }
+  })
+}
+
+export const getRecentStats = (days: number = 7) => {
+  return request.get<any, any>('/questions/recent-stats', {
+    params: { days }
+  })
 }

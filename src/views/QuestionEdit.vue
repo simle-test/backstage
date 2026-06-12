@@ -94,6 +94,9 @@
                 class="form-input"
                 :placeholder="`请输入选项${getOptionLabel(index)}的内容`"
               />
+              <div v-if="isOptionImage(option)" class="option-image-preview">
+                <img :src="getOptionImageUrl(option)" :alt="`选项${getOptionLabel(index)}图片`" class="preview-img" />
+              </div>
             </div>
           </div>
 
@@ -148,6 +151,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { addQuestion, updateQuestion, getQuestionDetail } from '@/api/question'
 import { ElMessage } from 'element-plus'
+import { getFullImageUrl, getQuestionImageUrl, isImagePath } from '@/utils/image'
 
 const router = useRouter()
 const route = useRoute()
@@ -202,6 +206,7 @@ const loadQuestionDetail = async () => {
       const res = await getQuestionDetail(id as number)
       if (res.data.code === 200) {
           const data = res.data.data
+          const contentImage = getQuestionImageUrl(data.questionContent)
           form.value = {
             id: data.id,
             title: data.title || '',
@@ -213,8 +218,8 @@ const loadQuestionDetail = async () => {
             source: data.source || '',
             year: data.year || null,
             status: data.status || 'active',
-            imageUrl: data.imageUrl || '',
-            materialImageUrl: data.materialImageUrl || '',
+            imageUrl: data.imageUrl ? getFullImageUrl(data.imageUrl) : contentImage,
+            materialImageUrl: data.materialImageUrl ? getFullImageUrl(data.materialImageUrl) : '',
             materialTitle: data.materialTitle || '',
             materialContent: data.content || data.materialContent || ''
           }
@@ -239,6 +244,14 @@ const parseOptions = (questionContent: string): string[] | null => {
     return null
   }
   return null
+}
+
+const isOptionImage = (option: string): boolean => {
+  return isImagePath(option)
+}
+
+const getOptionImageUrl = (option: string): string => {
+  return getFullImageUrl(option)
 }
 
 const handleSave = async () => {
@@ -572,6 +585,18 @@ onMounted(() => {
   background: rgba(37, 99, 235, 0.1);
   padding: 4px 12px;
   border-radius: 6px;
+}
+
+.option-image-preview {
+  margin-top: 8px;
+}
+
+.option-image-preview .preview-img {
+  max-width: 150px;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
 }
 
 .option-remove {

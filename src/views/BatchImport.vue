@@ -76,6 +76,18 @@
               </template>
             </div>
             <input ref="questionFileInput" type="file" class="file-input" accept=".docx,.txt" multiple @change="handleFileSelect($event, 'question')" />
+          
+          <!-- 来源名称输入 -->
+          <div class="source-input-wrapper" v-if="uploadFiles.length > 0">
+            <label class="source-label">来源名称</label>
+            <input 
+              v-model="sourceName" 
+              type="text" 
+              class="source-input" 
+              placeholder="请输入题目来源名称"
+            />
+            <p class="source-hint">本次导入的所有题目将使用此来源名称</p>
+          </div>
           </div>
 
           <!-- AI文件关系说明 -->
@@ -646,9 +658,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { batchImportPreview } from '@/api/question'
+import request from '@/api/request'
+
+// 防抖函数
+const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number): T => {
+  let timer: ReturnType<typeof setTimeout> | null = null
+  return ((...args: any[]) => {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => fn(...args), delay)
+  }) as T
+}
+
+// 请求锁，防止重复请求
+let isRequesting = false
 
 interface ParsedQuestion {
   title: string
@@ -682,6 +707,7 @@ const answerFileInput = ref<HTMLInputElement | null>(null)
 const previewData = ref<any>(null)
 const showAllQuestions = ref(false)
 const uploadFiles = ref<File[]>([])
+const sourceName = ref('')
 
 // 用于取消未完成的fetch请求
 const abortController = ref<AbortController | null>(null)
@@ -776,8 +802,13 @@ const handleFileSelect = (event: Event, type: string) => {
     if (validFiles.length > 0) {
       if (type === 'question') {
         uploadFiles.value = [...uploadFiles.value, ...validFiles]
+        // 如果是第一个文件，自动填充来源名称（去掉扩展名）
+        if (uploadFiles.value.length === validFiles.length && !sourceName.value && validFiles[0]) {
+          const nameWithoutExt = validFiles[0].name.replace(/\.[^/.]+$/, '')
+          sourceName.value = nameWithoutExt
+        }
       } else {
-        answerFile.value = validFiles[0] as File
+        answerFile.value = validFiles[0]! as File
       }
       ElMessage.success(`成功添加 ${validFiles.length} 个文件`)
     } else {
@@ -807,6 +838,11 @@ const handleDrop = (event: DragEvent, type: string) => {
     if (validFiles.length > 0) {
       if (type === 'question') {
         uploadFiles.value = [...uploadFiles.value, ...validFiles]
+        // 如果是第一个文件，自动填充来源名称（去掉扩展名）
+        if (uploadFiles.value.length === validFiles.length && !sourceName.value && validFiles[0]) {
+          const nameWithoutExt = validFiles[0].name.replace(/\.[^/.]+$/, '')
+          sourceName.value = nameWithoutExt
+        }
         ElMessage.success(`成功添加 ${validFiles.length} 个文件`)
       } else {
         answerFile.value = validFiles[0] as File
@@ -846,11 +882,18 @@ const formatFileSize = (bytes: number) => {
 
 // 开始导入（预览）
 const startImport = async () => {
+  // 请求锁：防止重复请求
+  if (isRequesting) {
+    ElMessage.warning('正在处理中，请稍后')
+    return
+  }
+  
   if (uploadFiles.value.length === 0) {
     ElMessage.warning('请上传题目文件')
     return
   }
 
+  isRequesting = true
   loading.value = true
   try {
     const formData = new FormData()
@@ -867,6 +910,11 @@ const startImport = async () => {
     
     if (settings.category) {
       formData.append('category', settings.category)
+    }
+    
+    // 添加来源名称
+    if (sourceName.value) {
+      formData.append('source', sourceName.value)
     }
 
     // 根据解析方式选择接口
@@ -899,6 +947,7 @@ const startImport = async () => {
     ElMessage.error(errMsg)
   } finally {
     loading.value = false
+    isRequesting = false // 释放请求锁
   }
 }
 
@@ -916,7 +965,8 @@ const confirmImport = async () => {
       difficulty: q.difficulty,
       category: q.category,
       correctAnswer: q.correctAnswer,
-      analysis: q.analysis
+      analysis: q.analysis,
+      orderNum: q.orderNum
     })
   })
   
@@ -928,21 +978,65 @@ const confirmImport = async () => {
         options: q.options,
         type: q.type,
         difficulty: q.difficulty,
-        category: mq.category || '资料分析',
+        category: mq.category || 'material_analysis',
         correctAnswer: q.correctAnswer,
         analysis: q.analysis,
-        material: mq.material // 关联材料
+        orderNum: q.orderNum,
+        material: mq.material,
+        materialId: mq.materialId
       })
     })
   })
   
   console.log('准备导入的题目数据:', allQuestions)
-  ElMessage.success(`即将导入 ${allQuestions.length} 道题目`)
+  
+  if (allQuestions.length === 0) {
+    ElMessage.warning('没有可导入的题目')
+    return
+  }
+  
+  loading.value = true
+  try {
+    // 调用后端导入接口，包含来源名称
+    const response = await request.post('/questions/batch-import/save', {
+      questions: allQuestions,
+      source: sourceName.value || '批量导入'
+    })
+    
+    const data = response.data
+    
+    if (data.code === 200) {
+      ElMessage.success(data.message || `成功导入 ${allQuestions.length} 道题目`)
+      // 重置状态
+      currentStep.value = 0
+      previewData.value = null
+      uploadFiles.value = []
+      editableData.questions = []
+      editableData.materialQuestions = []
+    } else {
+      ElMessage.error(data.message || '导入失败')
+    }
+  } catch (error: any) {
+    console.error('导入失败:', error)
+    ElMessage.error(error.response?.data?.message || error.message || '导入失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 // 进入校对
 const goToProofread = () => {
-  console.log('进入校对，previewData:', previewData.value)
+  console.log('========== 进入校对 ==========')
+  console.log('previewData:', previewData.value)
+  
+  // 检查previewData中的题目是否有答案
+  const previewQuestions = previewData.value?.questions || []
+  console.log(`预览数据中共有 ${previewQuestions.length} 道普通题目`)
+  
+  // 打印前5道题的详细信息
+  previewQuestions.slice(0, 5).forEach((q: any, i: number) => {
+    console.log(`题目 ${i + 1}: orderNum=${q.orderNum}, correctAnswer=${JSON.stringify(q.correctAnswer)}, analysis=${q.analysis ? q.analysis.substring(0, 50) + '...' : '空'}`)
+  })
   
   // 深拷贝预览数据到可编辑数据
   editableData.questions = JSON.parse(JSON.stringify(previewData.value?.questions || []))
@@ -972,6 +1066,17 @@ const goToProofread = () => {
     })
     console.log(`材料大题 ${mIndex + 1}: ${mq.subQuestions?.length || 0} 道小题, 有答案: ${subAnswerCount} 道, 有解析: ${subAnalysisCount} 道`)
   })
+  
+  // 检查可编辑数据中的第一题
+  if (editableData.questions && editableData.questions.length > 0) {
+    const firstQ = editableData.questions[0]!
+    console.log('第一题详细信息:', {
+      orderNum: firstQ.orderNum,
+      correctAnswer: firstQ.correctAnswer,
+      hasCorrectAnswer: !!firstQ.correctAnswer,
+      analysis: firstQ.analysis ? '有解析' : '无解析'
+    })
+  }
   
   currentStep.value = 2
 }
@@ -1161,28 +1266,10 @@ const getDifficultyClass = (difficulty: string) => {
   return difficultyClassMap[difficulty] || 'diff-default'
 }
 
-// 组件卸载时重置状态，防止路由切换时状态污染
+// 组件卸载时清理状态
 onUnmounted(() => {
-  try {
-    // 取消所有未完成的请求
-    abortController.value?.abort()
-    abortController.value = null
-    
-    currentStep.value = 0
-    previewData.value = null
-    uploadFiles.value = []
-    // 彻底清空 reactive 对象
-    editableData.questions.splice(0, editableData.questions.length)
-    editableData.materialQuestions.splice(0, editableData.materialQuestions.length)
-    proofreadTab.value = 'all'
-    showAllQuestions.value = false
-    isDraggingQuestion.value = false
-    isDraggingAnswer.value = false
-    loading.value = false
-    questionFile.value = null
-    answerFile.value = null
-  } catch (error) {
-    console.error('BatchImport component cleanup error:', error)
+  if (abortController.value) {
+    abortController.value.abort()
   }
 })
 </script>

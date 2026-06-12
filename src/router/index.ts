@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainLayout from '@/components/layout/MainLayout.vue'
-import QuestionManagement from '@/views/QuestionManagement.vue'
 import QuestionBank from '@/views/QuestionBank.vue'
+import QuestionManagement from '@/views/QuestionManagement.vue'
 import QuestionEdit from '@/views/QuestionEdit.vue'
+import RecentQuestions from '@/views/RecentQuestions.vue'
 import MaterialAnalysisEdit from '@/views/MaterialAnalysisEdit.vue'
 import BatchImport from '@/views/BatchImport.vue'
 import UserManagement from '@/views/UserManagement.vue'
@@ -26,6 +27,7 @@ const router = createRouter({
         { path: 'questions/edit/:id?', component: QuestionEdit, name: 'QuestionEdit' },
         { path: 'questions/material-analysis', component: MaterialAnalysisEdit, name: 'MaterialAnalysisEdit' },
         { path: 'questions/batch-import', component: BatchImport, name: 'BatchImport' },
+        { path: 'questions/recent', component: RecentQuestions, name: 'RecentQuestions' },
         { path: 'users', component: UserManagement, name: 'UserManagement' },
         { path: 'statistics', component: Statistics, name: 'Statistics' }
       ]

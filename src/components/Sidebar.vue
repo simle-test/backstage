@@ -178,11 +178,13 @@ const menuItems = [
 <style scoped lang="css">
 .sidebar {
   width: 280px;
+  height: 100vh;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
   border-right: 1px solid var(--border-light);
   position: relative;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .sidebar::before {
@@ -201,26 +203,7 @@ const menuItems = [
   display: flex;
   flex-direction: column;
   padding: 20px 18px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(37, 99, 235, 0.3) transparent;
-}
-
-.sidebar-inner::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-inner::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-inner::-webkit-scrollbar-thumb {
-  background: rgba(37, 99, 235, 0.3);
-  border-radius: 2px;
-}
-
-.sidebar-inner::-webkit-scrollbar-thumb:hover {
-  background: rgba(37, 99, 235, 0.5);
+  overflow: hidden;
 }
 
 .sidebar-header {

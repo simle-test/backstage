@@ -13,13 +13,12 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const currentPage = computed(() => {
-  const pageMap: Record<string, string> = {
-    '/questions': '题目管理',
-    '/bank': '题库管理',
-    '/users': '用户管理',
-    '/statistics': '统计分析'
-  }
-  return pageMap[route.path] || '首页'
+  const path = route.path
+  if (path.includes('/users')) return '用户管理'
+  if (path.includes('/statistics')) return '数据分析'
+  if (path.includes('/batch-import')) return '批量导入'
+  if (path.includes('/questions')) return '题目管理'
+  return '首页'
 })
 </script>
 
