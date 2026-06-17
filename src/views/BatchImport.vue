@@ -56,7 +56,7 @@
               <template v-if="uploadFiles.length === 0">
                 <div class="upload-icon-large">📂</div>
                 <p class="upload-main-text">拖拽文件到这里，或点击上传</p>
-                <p class="upload-hint">支持格式：Word(.docx)、TXT（可多选）</p>
+                <p class="upload-hint">支持格式：Word(.docx)、TXT、PDF（可多选）</p>
               </template>
               <template v-else>
                 <div class="files-grid">
@@ -75,7 +75,7 @@
                 </div>
               </template>
             </div>
-            <input ref="questionFileInput" type="file" class="file-input" accept=".docx,.txt" multiple @change="handleFileSelect($event, 'question')" />
+            <input ref="questionFileInput" type="file" class="file-input" accept=".docx,.txt,.pdf" multiple @change="handleFileSelect($event, 'question')" />
           
           <!-- 来源名称输入 -->
           <div class="source-input-wrapper" v-if="uploadFiles.length > 0">
@@ -793,7 +793,7 @@ const handleFileSelect = (event: Event, type: string) => {
   const target = event.target as HTMLInputElement
   const files = Array.from(target.files || [])
   if (files.length > 0) {
-    const validTypes = ['.docx', '.txt']
+    const validTypes = ['.docx', '.txt', '.pdf']
     const validFiles = files.filter(file => {
       const fileExt = '.' + file.name.split('.').pop()?.toLowerCase()
       return validTypes.includes(fileExt)
@@ -812,7 +812,7 @@ const handleFileSelect = (event: Event, type: string) => {
       }
       ElMessage.success(`成功添加 ${validFiles.length} 个文件`)
     } else {
-      ElMessage.warning('只支持 Word(.docx) 和 TXT 格式文件')
+      ElMessage.warning('只支持 Word(.docx)、TXT 和 PDF 格式文件')
     }
   }
   // 清空input以支持重复选择同一文件
@@ -829,7 +829,7 @@ const handleDrop = (event: DragEvent, type: string) => {
   
   const files = Array.from(event.dataTransfer?.files || [])
   if (files.length > 0) {
-    const validTypes = ['.docx', '.txt']
+    const validTypes = ['.docx', '.txt', '.pdf']
     const validFiles = files.filter(file => {
       const fileExt = '.' + file.name.split('.').pop()?.toLowerCase()
       return validTypes.includes(fileExt)
@@ -848,7 +848,7 @@ const handleDrop = (event: DragEvent, type: string) => {
         answerFile.value = validFiles[0] as File
       }
     } else {
-      ElMessage.warning('只支持 Word(.docx) 和 TXT 格式文件')
+      ElMessage.warning('只支持 Word(.docx)、TXT 和 PDF 格式文件')
     }
   }
 }
@@ -997,10 +997,11 @@ const confirmImport = async () => {
   
   loading.value = true
   try {
-    // 调用后端导入接口，包含来源名称
+    // 调用后端导入接口，包含来源名称和去重方式
     const response = await request.post('/questions/batch-import/save', {
       questions: allQuestions,
-      source: sourceName.value || '批量导入'
+      source: sourceName.value || '批量导入',
+      deduplicationMode: settings.dedup
     })
     
     const data = response.data
