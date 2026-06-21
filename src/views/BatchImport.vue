@@ -79,14 +79,24 @@
           
           <!-- 来源名称输入 -->
           <div class="source-input-wrapper" v-if="uploadFiles.length > 0">
-            <label class="source-label">来源名称</label>
-            <input 
-              v-model="sourceName" 
-              type="text" 
-              class="source-input" 
-              placeholder="请输入题目来源名称"
-            />
-            <p class="source-hint">本次导入的所有题目将使用此来源名称</p>
+            <div class="source-input-group">
+              <div class="source-input-prefix">
+                <span class="source-icon">📄</span>
+              </div>
+              <input 
+                v-model="sourceName" 
+                type="text" 
+                class="source-input" 
+                placeholder="请输入题目来源名称"
+              />
+              <div v-if="sourceName" class="source-input-suffix">
+                <button class="clear-source-btn" @click="sourceName = ''">✕</button>
+              </div>
+            </div>
+            <div class="source-input-footer">
+              <span class="source-hint">本次导入的所有题目将使用此来源名称</span>
+              <span class="source-auto-fill">✓ 已自动填充文件名</span>
+            </div>
           </div>
           </div>
 
@@ -265,7 +275,7 @@
                         <div class="item-header">
                           <span :class="['item-tag', getTypeClass(item.type)]">{{ getTypeName(item.type) }}</span>
                           <span class="item-number">第{{ item.orderNum }}题</span>
-                          <span v-if="item.category" class="item-category">{{ item.category }}</span>
+                          <span v-if="item.category" class="item-category">{{ formatCategoryName(item.category) }}</span>
                           <span v-if="item.difficulty" :class="['difficulty-tag', getDifficultyClass(item.difficulty)]">
                             {{ getDifficultyName(item.difficulty) }}
                           </span>
@@ -300,7 +310,7 @@
                   <div class="item-header">
                     <span :class="['item-tag', getTypeClass(item.type)]">{{ getTypeName(item.type) }}</span>
                     <span class="item-number">第{{ item.orderNum }}题</span>
-                    <span v-if="item.category" class="item-category">{{ item.category }}</span>
+                    <span v-if="item.category" class="item-category">{{ formatCategoryName(item.category) }}</span>
                     <span v-if="item.difficulty" :class="['difficulty-tag', getDifficultyClass(item.difficulty)]">
                       {{ getDifficultyName(item.difficulty) }}
                     </span>
@@ -415,7 +425,7 @@
               <div class="item-header">
                 <span :class="['item-tag', getTypeClass(item.type)]">{{ getTypeName(item.type) }}</span>
                 <span class="item-number">第{{ item.orderNum }}题</span>
-                <span v-if="item.category" class="item-category">{{ item.category }}</span>
+                <span v-if="item.category" class="item-category">{{ formatCategoryName(item.category) }}</span>
                 <span v-if="item.difficulty" :class="['difficulty-tag', getDifficultyClass(item.difficulty)]">
                   {{ getDifficultyName(item.difficulty) }}
                 </span>
@@ -490,7 +500,7 @@
         <div class="item-header">
           <span :class="['item-tag', getTypeClass(item.type)]">{{ getTypeName(item.type) }}</span>
           <span class="item-number">第{{ item.orderNum }}题</span>
-          <span v-if="item.category" class="item-category">{{ item.category }}</span>
+          <span v-if="item.category" class="item-category">{{ formatCategoryName(item.category) }}</span>
           <span v-if="item.difficulty" :class="['difficulty-tag', getDifficultyClass(item.difficulty)]">
             {{ getDifficultyName(item.difficulty) }}
           </span>
@@ -593,7 +603,7 @@
                   <div class="item-header">
                     <span :class="['item-tag', getTypeClass(item.type)]">{{ getTypeName(item.type) }}</span>
                     <span class="item-number">第{{ item.orderNum }}题</span>
-                    <span v-if="item.category" class="item-category">{{ item.category }}</span>
+                    <span v-if="item.category" class="item-category">{{ formatCategoryName(item.category) }}</span>
                     <span v-if="item.difficulty" :class="['difficulty-tag', getDifficultyClass(item.difficulty)]">
                       {{ getDifficultyName(item.difficulty) }}
                     </span>
@@ -625,7 +635,7 @@
             <div class="item-header">
               <span :class="['item-tag', getTypeClass(item.type)]">{{ getTypeName(item.type) }}</span>
               <span class="item-number">第{{ item.orderNum }}题</span>
-              <span v-if="item.category" class="item-category">{{ item.category }}</span>
+              <span v-if="item.category" class="item-category">{{ formatCategoryName(item.category) }}</span>
               <span v-if="item.difficulty" :class="['difficulty-tag', getDifficultyClass(item.difficulty)]">
                 {{ getDifficultyName(item.difficulty) }}
               </span>
@@ -801,11 +811,17 @@ const handleFileSelect = (event: Event, type: string) => {
     
     if (validFiles.length > 0) {
       if (type === 'question') {
+        const isFirstUpload = uploadFiles.value.length === 0
         uploadFiles.value = [...uploadFiles.value, ...validFiles]
-        // 如果是第一个文件，自动填充来源名称（去掉扩展名）
-        if (uploadFiles.value.length === validFiles.length && !sourceName.value && validFiles[0]) {
-          const nameWithoutExt = validFiles[0].name.replace(/\.[^/.]+$/, '')
-          sourceName.value = nameWithoutExt
+        if (isFirstUpload) {
+          previewData.value = null
+          currentStep.value = 0
+          editableData.questions = []
+          editableData.materialQuestions = []
+          if (validFiles[0]) {
+            const nameWithoutExt = validFiles[0].name.replace(/\.[^/.]+$/, '')
+            sourceName.value = nameWithoutExt
+          }
         }
       } else {
         answerFile.value = validFiles[0]! as File
@@ -837,11 +853,17 @@ const handleDrop = (event: DragEvent, type: string) => {
     
     if (validFiles.length > 0) {
       if (type === 'question') {
+        const isFirstUpload = uploadFiles.value.length === 0
         uploadFiles.value = [...uploadFiles.value, ...validFiles]
-        // 如果是第一个文件，自动填充来源名称（去掉扩展名）
-        if (uploadFiles.value.length === validFiles.length && !sourceName.value && validFiles[0]) {
-          const nameWithoutExt = validFiles[0].name.replace(/\.[^/.]+$/, '')
-          sourceName.value = nameWithoutExt
+        if (isFirstUpload) {
+          previewData.value = null
+          currentStep.value = 0
+          editableData.questions = []
+          editableData.materialQuestions = []
+          if (validFiles[0]) {
+            const nameWithoutExt = validFiles[0].name.replace(/\.[^/.]+$/, '')
+            sourceName.value = nameWithoutExt
+          }
         }
         ElMessage.success(`成功添加 ${validFiles.length} 个文件`)
       } else {
@@ -856,6 +878,13 @@ const handleDrop = (event: DragEvent, type: string) => {
 // 移除单个上传文件
 const removeUploadFile = (index: number) => {
   uploadFiles.value.splice(index, 1)
+  if (uploadFiles.value.length === 0) {
+    previewData.value = null
+    currentStep.value = 0
+    editableData.questions = []
+    editableData.materialQuestions = []
+    sourceName.value = ''
+  }
 }
 
 // 移除文件
@@ -963,7 +992,7 @@ const confirmImport = async () => {
       options: q.options,
       type: q.type,
       difficulty: q.difficulty,
-      category: q.category,
+      category: formatCategoryName(q.category), // 清理分类名称中的括号
       correctAnswer: q.correctAnswer,
       analysis: q.analysis,
       orderNum: q.orderNum
@@ -978,7 +1007,7 @@ const confirmImport = async () => {
         options: q.options,
         type: q.type,
         difficulty: q.difficulty,
-        category: mq.category || 'material_analysis',
+        category: formatCategoryName(mq.category || 'material_analysis'), // 清理分类名称中的括号
         correctAnswer: q.correctAnswer,
         analysis: q.analysis,
         orderNum: q.orderNum,
@@ -990,6 +1019,14 @@ const confirmImport = async () => {
   
   console.log('准备导入的题目数据:', allQuestions)
   
+  // 检查分类数据
+  const categoryStats: Record<string, number> = {}
+  allQuestions.forEach(q => {
+    const cat = q.category || 'undefined'
+    categoryStats[cat] = (categoryStats[cat] || 0) + 1
+  })
+  console.log('=== 分类统计 ===', categoryStats)
+  
   if (allQuestions.length === 0) {
     ElMessage.warning('没有可导入的题目')
     return
@@ -998,11 +1035,16 @@ const confirmImport = async () => {
   loading.value = true
   try {
     // 调用后端导入接口，包含来源名称和去重方式
-    const response = await request.post('/questions/batch-import/save', {
+    const importData = {
       questions: allQuestions,
       source: sourceName.value || '批量导入',
-      deduplicationMode: settings.dedup
-    })
+      importStrategy: settings.dedup,
+      enableDeduplication: settings.dedup !== 'all'
+    }
+    console.log('=== 导入请求参数 ===', JSON.stringify(importData, null, 2))
+    console.log('=== settings.dedup ===', settings.dedup)
+    console.log('=== enableDeduplication ===', settings.dedup !== 'all')
+    const response = await request.post('/questions/batch-import/save', importData)
     
     const data = response.data
     
@@ -1253,6 +1295,13 @@ const difficultyClassMap: Record<string, string> = {
 
 const getTypeName = (type: string) => {
   return typeNameMap[type] || '未知类型'
+}
+
+// 统一处理分类显示：去除括号及括号内的子分类信息
+const formatCategoryName = (category: string) => {
+  if (!category) return ''
+  // 移除括号及括号内的内容，例如："判断推理(定义判断)" -> "判断推理"
+  return category.replace(/\([^)]*\)/g, '').trim()
 }
 
 const getTypeClass = (type: string) => {
@@ -1566,6 +1615,105 @@ onUnmounted(() => {
 
 .remove-file:hover {
   background: #f78989;
+}
+
+/* 来源名称输入 */
+.source-input-wrapper {
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(64, 158, 255, 0.2);
+}
+
+.source-input-group {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+  transition: all 0.25s;
+}
+
+.source-input-group:focus-within {
+  border-color: #409eff;
+  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+}
+
+.source-input-prefix {
+  padding: 12px 14px;
+  background: #f5f7fa;
+  border-right: 1px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.source-icon {
+  font-size: 18px;
+}
+
+.source-input {
+  flex: 1;
+  padding: 12px 14px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #333;
+  background: transparent;
+}
+
+.source-input::placeholder {
+  color: #999;
+}
+
+.source-input-suffix {
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+}
+
+.clear-source-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #f0f0f0;
+  color: #999;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clear-source-btn:hover {
+  background: #e8e8e8;
+  color: #666;
+}
+
+.source-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.source-hint {
+  font-size: 12px;
+  color: #909399;
+}
+
+.source-auto-fill {
+  font-size: 12px;
+  color: #67c23a;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* 导入设置 */
