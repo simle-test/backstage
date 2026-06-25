@@ -112,9 +112,6 @@
                   <span class="recent-label">近期新增（7天）</span>
                   <div class="recent-stats">
                     <span class="recent-count">{{ bank.recentAdded || 0 }} 道</span>
-                    <span v-if="bank.growthRate" class="growth-rate" :class="{ positive: bank.growthRate > 0 }">
-                      较上周 {{ bank.growthRate > 0 ? '+' : '' }}{{ bank.growthRate }}%
-                    </span>
                   </div>
                 </div>
               </div>

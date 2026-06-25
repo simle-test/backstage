@@ -77,29 +77,20 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3>模块得分分布</h3>
-          <span class="chart-desc">五大模块正确率统计</span>
+          <span class="chart-desc">六大模块正确率统计</span>
         </div>
-        <div class="difficulty-dist">
-          <div class="dist-item">
-            <div class="dist-header">
-              <span class="dist-label">言语理解</span>
-              <span class="dist-value">{{ difficultyData.easy }}%</span>
+        <div class="category-grid">
+          <div v-for="(item, index) in categoryList" :key="index" class="category-item">
+            <div class="category-icon" :style="{ background: item.bgColor }">
+              <span>{{ item.icon }}</span>
             </div>
-            <div class="dist-bar easy" :style="{ width: difficultyData.easy + '%' }"></div>
-          </div>
-          <div class="dist-item">
-            <div class="dist-header">
-              <span class="dist-label">判断推理</span>
-              <span class="dist-value">{{ difficultyData.medium }}%</span>
+            <div class="category-info">
+              <div class="category-name">{{ item.name }}</div>
+              <div class="category-bar-bg">
+                <div class="category-bar" :style="{ width: item.value + '%', background: item.bgColor }"></div>
+              </div>
+              <div class="category-rate">{{ item.value.toFixed(1) }}%</div>
             </div>
-            <div class="dist-bar medium" :style="{ width: difficultyData.medium + '%' }"></div>
-          </div>
-          <div class="dist-item">
-            <div class="dist-header">
-              <span class="dist-label">资料分析</span>
-              <span class="dist-value">{{ difficultyData.hard }}%</span>
-            </div>
-            <div class="dist-bar hard" :style="{ width: difficultyData.hard + '%' }"></div>
           </div>
         </div>
       </div>
@@ -131,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { getOverallStatistics, getDailyTrend, getCategoryScores, getRanking } from '@/api/statistics'
 import { ElMessage } from 'element-plus'
 
@@ -156,6 +147,13 @@ interface RankingItem {
   solved: number
 }
 
+interface CategoryItem {
+  name: string
+  value: number
+  icon: string
+  bgColor: string
+}
+
 const overallStats = ref<OverallStats>({
   totalQuestions: 0,
   totalSubmissions: 0,
@@ -164,13 +162,25 @@ const overallStats = ref<OverallStats>({
 })
 
 const chartData = ref<ChartItem[]>([])
-const difficultyData = ref({
-  easy: 0,
-  medium: 0,
-  hard: 0
+const categoryData = ref({
+  politicalTheory: 0,
+  quantityRelation: 0,
+  materialAnalysis: 0,
+  commonSenseJudgment: 0,
+  logicalJudgment: 0,
+  languageUnderstanding: 0
 })
 const rankingData = ref<RankingItem[]>([])
 const loading = ref(false)
+
+const categoryList = computed<CategoryItem[]>(() => [
+  { name: '政治理论', value: categoryData.value.politicalTheory || 0, icon: '政', bgColor: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)' },
+  { name: '数量关系', value: categoryData.value.quantityRelation || 0, icon: '数', bgColor: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)' },
+  { name: '资料分析', value: categoryData.value.materialAnalysis || 0, icon: '资', bgColor: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' },
+  { name: '常识判断', value: categoryData.value.commonSenseJudgment || 0, icon: '常', bgColor: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)' },
+  { name: '判断推理', value: categoryData.value.logicalJudgment || 0, icon: '判', bgColor: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)' },
+  { name: '言语理解', value: categoryData.value.languageUnderstanding || 0, icon: '言', bgColor: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)' }
+])
 
 const loadData = async () => {
   loading.value = true
@@ -195,10 +205,13 @@ const loadData = async () => {
     }
 
     if (categoryRes.data.code === 200) {
-      difficultyData.value = {
-        easy: categoryRes.data.data.speech || 0,
-        medium: categoryRes.data.data.logic || 0,
-        hard: categoryRes.data.data.data || 0
+      categoryData.value = {
+        politicalTheory: categoryRes.data.data.politicalTheory || 0,
+        quantityRelation: categoryRes.data.data.quantityRelation || 0,
+        materialAnalysis: categoryRes.data.data.materialAnalysis || 0,
+        commonSenseJudgment: categoryRes.data.data.commonSenseJudgment || 0,
+        logicalJudgment: categoryRes.data.data.logicalJudgment || 0,
+        languageUnderstanding: categoryRes.data.data.languageUnderstanding || 0
       }
     }
 
@@ -425,67 +438,71 @@ onMounted(() => {
   color: var(--text-muted);
 }
 
-.difficulty-dist {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
-.dist-item {
+.category-item {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.dist-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  transition: all 0.3s;
 }
 
-.dist-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
+.category-item:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-2px);
 }
 
-.dist-value {
-  font-size: 16px;
+.category-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
   font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.category-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.category-name {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
-.dist-bar {
-  height: 10px;
-  background: var(--bg-tertiary);
-  border-radius: 5px;
-  position: relative;
+.category-bar-bg {
+  height: 6px;
+  background: var(--border-light);
+  border-radius: 3px;
   overflow: hidden;
 }
 
-.dist-bar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
+.category-bar {
   height: 100%;
-  border-radius: 5px;
+  border-radius: 3px;
   transition: width 0.6s ease;
 }
 
-.dist-bar.easy::before {
-  width: 36.5%;
-  background: linear-gradient(90deg, #22c55e 0%, #86efac 100%);
-}
-
-.dist-bar.medium::before {
-  width: 49.9%;
-  background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 100%);
-}
-
-.dist-bar.hard::before {
-  width: 13.6%;
-  background: linear-gradient(90deg, #ef4444 0%, #fca5a5 100%);
+.category-rate {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: right;
 }
 
 .content-card {
